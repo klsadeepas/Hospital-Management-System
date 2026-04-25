@@ -10,4 +10,4 @@ This project is built with:
 - TypeScript
 - React
 
-<img width="1720" height="720" alt="Image" src="https://github.com/user-attachments/assets/9cf96e15-bc62-4dd1-ae1a-cdae732b5797" />
+<img width="1520" height="720" alt="Image" src="https://github.com/user-attachments/assets/9cf96e15-bc62-4dd1-ae1a-cdae732b5797" />
