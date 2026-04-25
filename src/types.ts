@@ -95,6 +95,14 @@ export interface Invoice {
   status: 'Paid' | 'Unpaid';
 }
 
+export interface Alert {
+  id: string;
+  title: string;
+  description: string;
+  type: 'error' | 'warning' | 'info';
+  date: string;
+}
+
 export interface HospitalState {
   doctors: Doctor[];
   patients: Patient[];

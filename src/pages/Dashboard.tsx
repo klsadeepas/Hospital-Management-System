@@ -6,7 +6,9 @@ import {
   TrendingUp, 
   ChevronRight,
   ClipboardList,
-  Clock
+  Clock,
+  X,
+  Bell
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -20,12 +22,23 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { formatCurrency, cn } from '../lib/utils';
+import { Alert } from '../types';
 
 export default function Dashboard() {
   const data = useHospitalData();
+  const [showAllAlerts, setShowAllAlerts] = React.useState(false);
+
+  const alerts: Alert[] = [
+    { id: '1', title: 'Pharmacy: Low Insulin Stock', description: 'Less than 20 units remaining in Central Wing storage.', type: 'error', date: '2 min ago' },
+    { id: '2', title: 'ER Congestion: Level 3', description: 'Wait times exceeding 45 minutes for non-critical cases.', type: 'warning', date: '15 min ago' },
+    { id: '3', title: 'New Staff Shift started', description: 'Night shift rotation (12 personnel) logged into the dashboard.', type: 'info', date: '45 min ago' },
+    { id: '4', title: 'Lab Results: Critical Value', description: 'Patient O-442 blood tests show critical electrolyte levels.', type: 'error', date: '1 hour ago' },
+    { id: '5', title: 'Billing System Maintenance', description: 'Scheduled maintenance for the electronic payment gateway at 02:00 AM.', type: 'info', date: '2 hours ago' },
+    { id: '6', title: 'Doctor On-Call: Dr. Wilson', description: 'Cardiology specialist Dr. Sarah Wilson is now primary for ER trauma.', type: 'info', date: '3 hours ago' },
+  ];
 
   const stats = [
     { label: 'Active In-Patients', value: data.patients.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', progress: 80, trend: '+4%' },
@@ -116,33 +129,48 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
-        className="col-span-12 lg:col-span-4 bento-card flex flex-col"
+        className="col-span-12 lg:col-span-4 bento-card flex flex-col pt-6"
       >
-        <h4 className="font-bold text-slate-900 mb-6">System Alerts</h4>
-        <div className="space-y-4">
-          <div className="flex items-start gap-4 p-4 bg-red-50 rounded-2xl border border-red-100">
-            <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0"></div>
-            <div>
-              <p className="text-xs font-bold text-red-900">Pharmacy: Low Insulin Stock</p>
-              <p className="text-[10px] text-red-700 leading-tight mt-1">Less than 20 units remaining in Central Wing storage.</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100">
-            <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
-            <div>
-              <p className="text-xs font-bold text-amber-900">ER Congestion: Level 3</p>
-              <p className="text-[10px] text-amber-700 leading-tight mt-1">Wait times exceeding 45 minutes for non-critical cases.</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
-            <div>
-              <p className="text-xs font-bold text-blue-900">New Staff Shift started</p>
-              <p className="text-[10px] text-blue-700 leading-tight mt-1">Night shift rotation (12 personnel) logged into the dashboard.</p>
-            </div>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h4 className="font-bold text-slate-900">System Alerts</h4>
+          <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {alerts.filter(a => a.type === 'error').length} URGENT
+          </span>
         </div>
-        <button className="mt-auto w-full py-3 text-blue-600 font-bold text-xs hover:bg-blue-50 rounded-xl transition-all">
+        <div className="space-y-4">
+          {alerts.slice(0, 3).map((alert) => (
+            <div 
+              key={alert.id}
+              className={cn(
+                "flex items-start gap-4 p-4 rounded-2xl border",
+                alert.type === 'error' ? "bg-red-50 border-red-100" : 
+                alert.type === 'warning' ? "bg-amber-50 border-amber-100" : "bg-blue-50 border-blue-100"
+              )}
+            >
+              <div className={cn(
+                "w-2 h-2 rounded-full mt-1.5 shrink-0",
+                alert.type === 'error' ? "bg-red-500" : 
+                alert.type === 'warning' ? "bg-amber-500" : "bg-blue-500"
+              )}></div>
+              <div>
+                <p className={cn(
+                  "text-xs font-bold",
+                  alert.type === 'error' ? "text-red-900" : 
+                  alert.type === 'warning' ? "text-amber-900" : "text-blue-900"
+                )}>{alert.title}</p>
+                <p className={cn(
+                  "text-[10px] leading-tight mt-1",
+                  alert.type === 'error' ? "text-red-700" : 
+                  alert.type === 'warning' ? "text-amber-700" : "text-blue-700"
+                )}>{alert.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button 
+          onClick={() => setShowAllAlerts(true)}
+          className="mt-6 w-full py-3 text-blue-600 font-bold text-xs hover:bg-blue-50 rounded-xl transition-all border border-dashed border-blue-200"
+        >
           VIEW ALL ALERTS
         </button>
       </motion.div>
@@ -214,6 +242,89 @@ export default function Dashboard() {
           ))}
         </div>
       </motion.div>
+      {/* Alerts Modal */}
+      <AnimatePresence>
+        {showAllAlerts && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAllAlerts(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-white rounded-[32px] shadow-2xl p-8 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+            >
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-red-50 text-red-600 rounded-xl">
+                      <Bell className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-2xl font-bold tracking-tight text-slate-900">System Notifications</h3>
+                  </div>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Real-time Hospital Monitor</p>
+                </div>
+                <button 
+                  onClick={() => setShowAllAlerts(false)} 
+                  className="p-3 hover:bg-slate-50 rounded-2xl text-slate-400 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                {alerts.map((alert) => (
+                  <motion.div 
+                    key={alert.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={cn(
+                      "flex items-start gap-5 p-5 rounded-3xl border transition-all hover:scale-[1.01]",
+                      alert.type === 'error' ? "bg-red-50/50 border-red-100" : 
+                      alert.type === 'warning' ? "bg-amber-50/50 border-amber-100" : "bg-blue-50/50 border-blue-100"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-3 h-3 rounded-full mt-1.5 shrink-0 animate-pulse",
+                      alert.type === 'error' ? "bg-red-500" : 
+                      alert.type === 'warning' ? "bg-amber-500" : "bg-blue-500"
+                    )}></div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className={cn(
+                          "text-sm font-bold",
+                          alert.type === 'error' ? "text-red-900" : 
+                          alert.type === 'warning' ? "text-amber-900" : "text-blue-900"
+                        )}>{alert.title}</p>
+                        <span className="text-[10px] font-bold text-slate-400 font-mono">{alert.date}</span>
+                      </div>
+                      <p className={cn(
+                        "text-xs leading-relaxed",
+                        alert.type === 'error' ? "text-red-700/80" : 
+                        alert.type === 'warning' ? "text-amber-700/80" : "text-blue-700/80"
+                      )}>{alert.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center">
+                <button 
+                  onClick={() => setShowAllAlerts(false)}
+                  className="btn-primary px-8 h-12 rounded-2xl"
+                >
+                  Close Monitor
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

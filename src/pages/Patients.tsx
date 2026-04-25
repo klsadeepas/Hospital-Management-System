@@ -812,21 +812,19 @@ export default function Patients() {
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input 
             type="text" 
             placeholder="Search by name..." 
-            className="input-field pl-12 h-12 font-medium"
+            className="input-field px-4 h-12 font-medium"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
         <div className="w-full md:w-64 relative">
-          <Clipboard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <input 
             type="text" 
             placeholder="Filter by ID (e.g. p1)..." 
-            className="input-field pl-11 h-12 font-bold uppercase text-xs"
+            className="input-field px-4 h-12 font-bold uppercase text-xs"
             onChange={e => {
               const val = e.target.value.toLowerCase();
               setSearch(val); // Reuse same search state for simplicity or could add specific ID state
