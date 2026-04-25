@@ -1,5 +1,5 @@
 # Hospital-Management-System
-A Hospital Management System built using React (frontend-focused) is a web-based application that simulates hospital operations entirely on the client side.
+A modern Hospital Management System built with React, focusing on an intuitive and responsive frontend interface. This project provides user-friendly dashboards for managing patients, appointments, doctors, and hospital resources. It emphasizes clean UI/UX design, efficient state management, and seamless data handling through API integration. Ideal for demonstrating frontend development skills in building scalable and interactive healthcare applications.
 
 # How can I run this code?
 The only requirement is having Node.js & npm installed
