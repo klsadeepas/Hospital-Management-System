@@ -11,4 +11,4 @@ This project is built with:
 - React
 # Screenshot of web application
 
-<img width="1520" height="720" alt="Image" src="https://github.com/user-attachments/assets/9cf96e15-bc62-4dd1-ae1a-cdae732b5797" />
+![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/ba119589cf9f4cccab1594a55fd256ee88a17958/images/1.png)
