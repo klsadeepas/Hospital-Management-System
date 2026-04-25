@@ -9,5 +9,6 @@ This project is built with:
 - Vite
 - TypeScript
 - React
+# Screenshot of web application
 
 <img width="1520" height="720" alt="Image" src="https://github.com/user-attachments/assets/9cf96e15-bc62-4dd1-ae1a-cdae732b5797" />
