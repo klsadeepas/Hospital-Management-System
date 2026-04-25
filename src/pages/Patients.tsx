@@ -27,6 +27,7 @@ export default function Patients() {
   const [activeTab, setActiveTab] = useState<'history' | 'prescriptions' | 'labs'>('history');
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [showLabForm, setShowLabForm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   
   const [prescriptionFormData, setPrescriptionFormData] = useState({
     medicationId: '',
@@ -73,6 +74,42 @@ export default function Patients() {
   const [historyView, setHistoryView] = useState<'list' | 'calendar'>('list');
   const [historyMonth, setHistoryMonth] = useState(new Date());
   const [selectedNote, setSelectedNote] = useState<MedicalNote | null>(null);
+
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    age: '',
+    gender: 'Male' as const,
+    bloodGroup: ''
+  });
+
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    const updatedPatient = {
+      ...selectedPatient,
+      ...editFormData,
+      age: parseInt(editFormData.age)
+    };
+
+    updatePatient(updatedPatient);
+    setShowEditModal(false);
+  };
+
+  const openEditModal = () => {
+    if (!selectedPatient) return;
+    setEditFormData({
+      name: selectedPatient.name,
+      phone: selectedPatient.phone,
+      address: selectedPatient.address,
+      age: selectedPatient.age.toString(),
+      gender: selectedPatient.gender as any,
+      bloodGroup: selectedPatient.bloodGroup
+    });
+    setShowEditModal(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,9 +201,16 @@ export default function Patients() {
                 {selectedPatient.name[0]}
               </div>
               <h2 className="text-2xl font-bold text-slate-900">{selectedPatient.name}</h2>
-              <p className="text-slate-500 font-mono text-sm">#{selectedPatient.id}</p>
+              <p className="text-slate-500 font-mono text-sm mb-4">#{selectedPatient.id}</p>
               
-              <div className="grid grid-cols-3 gap-8 mt-8 w-full border-y border-slate-100 py-6">
+              <button 
+                onClick={openEditModal}
+                className="btn-secondary w-full flex items-center justify-center gap-2 mb-6"
+              >
+                <Clipboard className="w-4 h-4" /> Edit Profile
+              </button>
+              
+              <div className="grid grid-cols-3 gap-8 w-full border-y border-slate-100 py-6">
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Age</p>
                   <p className="text-lg font-bold text-slate-900">{selectedPatient.age}</p>
@@ -788,6 +832,109 @@ export default function Patients() {
                   <div className="flex gap-4 pt-6 border-t border-slate-100">
                     <button type="button" onClick={() => setShowLabForm(false)} className="btn-secondary flex-1 h-12">Cancel</button>
                     <button type="submit" className="btn-primary flex-1 justify-center h-12">Save Result</button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Edit Patient Modal */}
+        <AnimatePresence>
+          {showEditModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowEditModal(false)}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl font-bold tracking-tight">Edit Patient Profile</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Update personal information</p>
+                  </div>
+                  <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 font-bold h-10 w-10">✕</button>
+                </div>
+
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                  <div>
+                    <label className="label-text">Full Name</label>
+                    <input 
+                      required 
+                      className="input-field h-12" 
+                      value={editFormData.name}
+                      onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-text">Telephone</label>
+                      <input 
+                        required 
+                        className="input-field h-12" 
+                        value={editFormData.phone}
+                        onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label-text">Age</label>
+                      <input 
+                        required 
+                        type="number"
+                        className="input-field h-12" 
+                        value={editFormData.age}
+                        onChange={e => setEditFormData({ ...editFormData, age: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label-text">Location (Address)</label>
+                    <input 
+                      required 
+                      className="input-field h-12" 
+                      value={editFormData.address}
+                      onChange={e => setEditFormData({ ...editFormData, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-text">Gender</label>
+                      <select 
+                        required 
+                        className="input-field h-12"
+                        value={editFormData.gender}
+                        onChange={e => setEditFormData({ ...editFormData, gender: e.target.value as any })}
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-text">Blood Group</label>
+                      <input 
+                        required 
+                        className="input-field h-12" 
+                        value={editFormData.bloodGroup}
+                        onChange={e => setEditFormData({ ...editFormData, bloodGroup: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-6 border-t border-slate-100">
+                    <button type="button" onClick={() => setShowEditModal(false)} className="btn-secondary flex-1 h-12">Cancel</button>
+                    <button type="submit" className="btn-primary flex-1 justify-center h-12">Save Changes</button>
                   </div>
                 </form>
               </motion.div>

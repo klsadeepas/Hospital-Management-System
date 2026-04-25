@@ -49,7 +49,49 @@ const STORAGE_KEY = 'mediflow_hms_data';
 export function useHospitalData() {
   const [state, setState] = useState<HospitalState>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_STATE;
+    if (!saved) return INITIAL_STATE;
+    
+    let data = JSON.parse(saved);
+    
+    // Migration: Update names from John Doe / Jane Smith to Kamal perera / Nimal udayanga
+    // This handles the case where the user has existing data in localStorage
+    let migrated = false;
+    
+    if (data.patients) {
+      data.patients = data.patients.map((p: Patient) => {
+        if (p.name === 'John Doe') {
+          migrated = true;
+          return { ...p, name: 'Kamal perera' };
+        }
+        if (p.name === 'Jane Smith') {
+          migrated = true;
+          return { ...p, name: 'Nimal udayanga' };
+        }
+        return p;
+      });
+    }
+    
+    if (data.doctors) {
+      data.doctors = data.doctors.map((d: Doctor) => {
+        if (d.reviews) {
+          const updatedReviews = d.reviews.map(r => {
+            if (r.patientName === 'John Doe') {
+              migrated = true;
+              return { ...r, patientName: 'Kamal perera' };
+            }
+            if (r.patientName === 'Jane Smith') {
+              migrated = true;
+              return { ...r, patientName: 'Nimal udayanga' };
+            }
+            return r;
+          });
+          return { ...d, reviews: updatedReviews };
+        }
+        return d;
+      });
+    }
+
+    return data;
   });
 
   useEffect(() => {
