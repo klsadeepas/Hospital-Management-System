@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity } from 'lucide-react';
+import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
-import { generateId } from '../lib/utils';
+import { generateId, cn } from '../lib/utils';
 import { Patient, MedicalNote } from '../types';
+import { 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  format, 
+  isSameMonth, 
+  isSameDay, 
+  addMonths, 
+  subMonths,
+  parseISO
+} from 'date-fns';
 
 export default function Patients() {
   const { patients, addPatient, updatePatient, doctors, appointments } = useHospitalData();
@@ -34,6 +47,10 @@ export default function Patients() {
     treatment: '',
     doctorId: ''
   });
+
+  const [historyView, setHistoryView] = useState<'list' | 'calendar'>('list');
+  const [historyMonth, setHistoryMonth] = useState(new Date());
+  const [selectedNote, setSelectedNote] = useState<MedicalNote | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,45 +217,145 @@ export default function Patients() {
           </div>
 
           <div className="col-span-12 lg:col-span-8 bento-card p-8">
-            <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
-              <Stethoscope className="w-6 h-6 text-blue-600" />
-              Medical History
-            </h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Stethoscope className="w-6 h-6 text-blue-600" />
+                Medical History
+              </h3>
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto">
+                <button 
+                  onClick={() => setHistoryView('list')}
+                  className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
+                    historyView === 'list' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
+                  <LayoutList className="w-4 h-4" /> List
+                </button>
+                <button 
+                  onClick={() => setHistoryView('calendar')}
+                  className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
+                    historyView === 'calendar' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
+                  <CalendarDays className="w-4 h-4" /> Calendar
+                </button>
+              </div>
+            </div>
 
-            <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100">
-              {selectedPatient.history.length === 0 ? (
-                <div className="text-center py-20 text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                  No medical records found for this patient.
-                </div>
-              ) : (
-                selectedPatient.history.map((note) => (
-                  <div key={note.id} className="relative pl-8">
-                    <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
-                    <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-blue-100 transition-all group">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <CalendarIcon className="w-3 h-3" />
-                            {note.date}
-                          </p>
-                          <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{note.diagnosis}</h4>
+            {historyView === 'list' ? (
+              <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100">
+                {selectedPatient.history.length === 0 ? (
+                  <div className="text-center py-20 text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    No medical records found for this patient.
+                  </div>
+                ) : (
+                  selectedPatient.history.map((note) => (
+                    <div key={note.id} className="relative pl-8">
+                      <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
+                      <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-blue-100 transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                              <CalendarIcon className="w-3 h-3" />
+                              {note.date}
+                            </p>
+                            <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{note.diagnosis}</h4>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Physician</p>
+                            <p className="text-sm font-semibold text-slate-700">
+                              {doctors.find(d => d.id === note.doctorId)?.name || 'Unknown'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Physician</p>
-                          <p className="text-sm font-semibold text-slate-700">
-                            {doctors.find(d => d.id === note.doctorId)?.name || 'Unknown'}
-                          </p>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Treatment Plan</p>
+                          <p className="text-sm text-slate-700 leading-relaxed italic">"{note.treatment}"</p>
                         </div>
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Treatment Plan</p>
-                        <p className="text-sm text-slate-700 leading-relaxed italic">"{note.treatment}"</p>
                       </div>
                     </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <h4 className="font-bold text-slate-700">{format(historyMonth, 'MMMM yyyy')}</h4>
+                  <div className="flex gap-2">
+                    <button onClick={() => setHistoryMonth(subMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setHistoryMonth(addMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+
+                <div className="grid grid-cols-7 border-t border-l border-slate-100 rounded-xl overflow-hidden">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    <div key={day} className="py-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-r border-b border-slate-100">{day}</div>
+                  ))}
+                  {(() => {
+                    const monthStart = startOfMonth(historyMonth);
+                    const monthEnd = endOfMonth(monthStart);
+                    const startDate = startOfWeek(monthStart);
+                    const endDate = endOfWeek(monthEnd);
+                    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+                    return calendarDays.map((day, idx) => {
+                      const dayNotes = selectedPatient.history.filter(note => isSameDay(parseISO(note.date), day));
+                      return (
+                        <div 
+                          key={idx} 
+                          className={cn(
+                            "min-h-[100px] p-2 border-r border-b border-slate-100 transition-all",
+                            !isSameMonth(day, monthStart) ? "bg-slate-50/30 opacity-20" : "bg-white"
+                          )}
+                        >
+                          <p className={cn(
+                            "text-[10px] font-bold mb-1 w-5 h-5 flex items-center justify-center rounded-md",
+                            isSameDay(day, new Date()) ? "bg-blue-600 text-white" : "text-slate-400"
+                          )}>
+                            {format(day, 'd')}
+                          </p>
+                          <div className="space-y-1">
+                            {dayNotes.map(note => (
+                              <button
+                                key={note.id}
+                                onClick={() => setSelectedNote(note)}
+                                className="w-full text-left p-1.5 rounded-lg bg-blue-50 text-[9px] font-bold text-blue-700 border border-blue-100 truncate hover:bg-blue-100 transition-colors"
+                              >
+                                {note.diagnosis}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {selectedNote && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-6 rounded-2xl bg-white border border-blue-100 shadow-sm"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">{selectedNote.date}</p>
+                        <h4 className="text-lg font-bold text-slate-900">{selectedNote.diagnosis}</h4>
+                      </div>
+                      <button onClick={() => setSelectedNote(null)} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-xl">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Physician: {doctors.find(d => d.id === selectedNote.doctorId)?.name}</p>
+                      <p className="text-sm text-slate-700 italic">"{selectedNote.treatment}"</p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

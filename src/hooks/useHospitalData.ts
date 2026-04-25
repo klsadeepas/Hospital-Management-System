@@ -59,22 +59,29 @@ export function useHospitalData() {
     setState(prev => ({ ...prev, appointments: [...prev.appointments, appointment] }));
   };
 
+  const updateAppointment = (appointment: Appointment) => {
+    setState(prev => ({
+      ...prev,
+      appointments: prev.appointments.map(a => (a.id === appointment.id ? appointment : a)),
+    }));
+  };
+
   const updateAppointmentStatus = (id: string, status: Appointment['status']) => {
     setState(prev => ({
       ...prev,
-      appointments: prev.appointments.map(a => a.id === id ? { ...a, status } : a)
+      appointments: prev.appointments.map(a => (a.id === id ? {...a, status} : a)),
     }));
   };
 
   const updateInventory = (id: string, quantity: number) => {
     setState(prev => ({
       ...prev,
-      inventory: prev.inventory.map(item => item.id === id ? { ...item, quantity } : item)
+      inventory: prev.inventory.map(item => (item.id === id ? {...item, quantity} : item)),
     }));
   };
 
   const addInvoice = (invoice: Invoice) => {
-    setState(prev => ({ ...prev, invoices: [...prev.invoices, invoice] }));
+    setState(prev => ({...prev, invoices: [...prev.invoices, invoice]}));
   };
 
   return {
@@ -82,8 +89,9 @@ export function useHospitalData() {
     addPatient,
     updatePatient,
     addAppointment,
+    updateAppointment,
     updateAppointmentStatus,
     updateInventory,
-    addInvoice
+    addInvoice,
   };
 }
