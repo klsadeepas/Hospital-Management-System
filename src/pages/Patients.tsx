@@ -1068,7 +1068,7 @@ export default function Patients() {
               </div>
             </div>
 
-            <button className="w-full py-3 bg-slate-50 text-slate-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+            <button className="w-full py-3 bg-blue-600 text-white rounded-xl group-hover:bg-blue-700 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
               View Profile <ChevronRight className="w-4 h-4" />
             </button>
           </motion.div>

@@ -30,9 +30,42 @@ const INITIAL_STATE: HospitalState = {
     },
   ],
   patients: [
-    { id: 'p1', name: 'Kamal Perera', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '0713423457', address: '123, Galle Road, Colombo 03', history: [] },
-    { id: 'p2', name: 'Nimal Udayanga', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '0753519111', address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250', history: [] },
-    { id: 'p3', name: 'Sadeepa Shyamal', age: 28, gender: 'Male', bloodGroup: 'B+', phone: '0753519186', address: '374/E/01 Udupila, Delgoda', history: [] },
+    { id: 'p1', name: 'Kamal Perera', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '0713423457', address: '123, Galle Road, Colombo 03', history: [
+      { id: 'm1', date: '2024-03-15', diagnosis: 'Hypertension (High Blood Pressure)', treatment: 'Started on Lisinopril 10mg once daily', doctorId: '1' },
+      { id: 'm2', date: '2024-02-10', diagnosis: 'Type 2 Diabetes', treatment: 'Metformin 500mg twice daily, dietary modifications', doctorId: '2' },
+      { id: 'm3', date: '2023-11-20', diagnosis: 'Annual Health Checkup - All Normal', treatment: 'Continue current lifestyle', doctorId: '1' }
+    ], prescriptions: [
+      { id: 'rx1', patientId: 'p1', doctorId: '1', medicationId: 'i1', dosage: '10mg', frequency: 'Once daily', duration: '30 days', date: '2024-03-15', notes: 'Take in the morning with water' },
+      { id: 'rx2', patientId: 'p1', doctorId: '2', medicationId: 'i2', dosage: '500mg', frequency: 'Twice daily', duration: '90 days', date: '2024-02-10', notes: 'Take after meals' },
+      { id: 'rx3', patientId: 'p1', doctorId: '1', dosage: '1000mg', frequency: 'Once daily', duration: '30 days', date: '2024-04-01', notes: 'For cholesterol management' }
+    ], labReports: [
+      { id: 'lab1', patientId: 'p1', testName: 'Complete Blood Count (CBC)', date: '2024-04-15', result: '14.5', unit: 'g/dL', range: '13.5-17.5', status: 'Normal', doctorId: '1', notes: 'Hemoglobin level normal' },
+      { id: 'lab2', patientId: 'p1', testName: 'Fasting Blood Sugar', date: '2024-04-15', result: '126', unit: 'mg/dL', range: '70-100', status: 'Abnormal', doctorId: '2', notes: 'Slightly elevated - continue diabetes medication' },
+      { id: 'lab3', patientId: 'p1', testName: 'Lipid Profile', date: '2024-04-15', result: '210', unit: 'mg/dL', range: '<200', status: 'Abnormal', doctorId: '1', notes: 'Total cholesterol slightly high' },
+      { id: 'lab4', patientId: 'p1', testName: 'Blood Pressure', date: '2024-04-20', result: '140/90', unit: 'mmHg', range: '<120/80', status: 'Abnormal', doctorId: '1', notes: 'Slightly elevated - monitor regularly' },
+      { id: 'lab5', patientId: 'p1', testName: 'Creatinine', date: '2024-03-01', result: '1.0', unit: 'mg/dL', range: '0.7-1.3', status: 'Normal', doctorId: '1' },
+      { id: 'lab6', patientId: 'p1', testName: 'HbA1c', date: '2024-03-01', result: '7.2', unit: '%', range: '<5.7', status: 'Abnormal', doctorId: '2', notes: 'Diabetes under reasonable control' }
+    ] },
+    { id: 'p2', name: 'Nimal Udayanga', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '0753519111', address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250', history: [
+      { id: 'm4', date: '2024-04-10', diagnosis: 'Migraine', treatment: 'Sumatriptan 50mg as needed, avoid triggers', doctorId: '2' },
+      { id: 'm5', date: '2024-01-20', diagnosis: 'Iron Deficiency Anemia', treatment: 'Iron supplements 325mg twice daily', doctorId: '1' }
+    ], prescriptions: [
+      { id: 'rx4', patientId: 'p2', doctorId: '2', dosage: '50mg', frequency: 'As needed', duration: '30 days', date: '2024-04-10', notes: 'Take at onset of migraine' },
+      { id: 'rx5', patientId: 'p2', doctorId: '1', dosage: '325mg', frequency: 'Twice daily', duration: '60 days', date: '2024-01-20', notes: 'Take with vitamin C for better absorption' }
+    ], labReports: [
+      { id: 'lab7', patientId: 'p2', testName: 'Hemoglobin', date: '2024-04-18', result: '11.2', unit: 'g/dL', range: '12.0-15.5', status: 'Abnormal', doctorId: '1', notes: 'Slightly low - continue iron supplements' },
+      { id: 'lab8', patientId: 'p2', testName: 'Ferritin', date: '2024-04-18', result: '25', unit: 'ng/mL', range: '10-120', status: 'Normal', doctorId: '1' },
+      { id: 'lab9', patientId: 'p2', testName: 'Iron', date: '2024-04-18', result: '65', unit: 'mcg/dL', range: '50-170', status: 'Normal', doctorId: '1' }
+    ] },
+    { id: 'p3', name: 'Sadeepa Shyamal', age: 28, gender: 'Male', bloodGroup: 'B+', phone: '0753519186', address: '374/E/01 Udupila, Delgoda', history: [
+      { id: 'm6', date: '2024-03-25', diagnosis: 'Acute Bronchitis', treatment: 'Amoxicillin 500mg three times daily, rest', doctorId: '1' },
+      { id: 'm7', date: '2023-08-15', diagnosis: 'Sports Injury - Ankle Sprain', treatment: 'RICE therapy, physiotherapy', doctorId: '2' }
+    ], prescriptions: [
+      { id: 'rx6', patientId: 'p3', doctorId: '1', dosage: '500mg', frequency: 'Three times daily', duration: '10 days', date: '2024-03-25', notes: 'Complete full course' }
+    ], labReports: [
+      { id: 'lab10', patientId: 'p3', testName: 'Chest X-Ray', date: '2024-03-25', result: 'Clear', unit: '', range: 'Normal', status: 'Normal', doctorId: '1', notes: 'No consolidation or effusion' },
+      { id: 'lab11', patientId: 'p3', testName: 'CBC', date: '2024-03-25', result: '16.2', unit: 'g/dL', range: '13.5-17.5', status: 'Normal', doctorId: '1' }
+    ] },
     { id: 'p4', name: 'Prameesha Shyanadi', age: 25, gender: 'Female', bloodGroup: 'B+', phone: '0756472537', address: '376/B/02 Gampaha, Weliweriya', history: [] },
   ],
   appointments: [
@@ -124,13 +157,40 @@ export function useHospitalData() {
 
       data.patients = data.patients.map((p: Patient) => {
         if (p.name.toLowerCase() === 'kamal perera' || p.name === 'John Doe') {
-          return { ...p, name: 'Kamal Perera', phone: '0713423457', address: '123, Galle Road, Colombo 03' };
+          const initialKamal = INITIAL_STATE.patients.find(ip => ip.name === 'Kamal Perera');
+          return { 
+            ...p, 
+            name: 'Kamal Perera', 
+            phone: '0713423457', 
+            address: '123, Galle Road, Colombo 03',
+            history: p.history?.length > 0 ? p.history : (initialKamal?.history || []),
+            prescriptions: p.prescriptions?.length > 0 ? p.prescriptions : (initialKamal?.prescriptions || []),
+            labReports: p.labReports?.length > 0 ? p.labReports : (initialKamal?.labReports || [])
+          };
         }
         if (p.name.toLowerCase() === 'nimal udayanga' || p.name === 'Jane Smith') {
-          return { ...p, name: 'Nimal Udayanga', phone: '0753519111', address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250' };
+          const initialNimal = INITIAL_STATE.patients.find(ip => ip.name === 'Nimal Udayanga');
+          return { 
+            ...p, 
+            name: 'Nimal Udayanga', 
+            phone: '0753519111', 
+            address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250',
+            history: p.history?.length > 0 ? p.history : (initialNimal?.history || []),
+            prescriptions: p.prescriptions?.length > 0 ? p.prescriptions : (initialNimal?.prescriptions || []),
+            labReports: p.labReports?.length > 0 ? p.labReports : (initialNimal?.labReports || [])
+          };
         }
         if (p.name.toLowerCase() === 'sadeepa shyamal') {
-          return { ...p, name: 'Sadeepa Shyamal', phone: '0753519186', address: '374/E/01 Udupila, Delgoda' };
+          const initialSadeepa = INITIAL_STATE.patients.find(ip => ip.name === 'Sadeepa Shyamal');
+          return { 
+            ...p, 
+            name: 'Sadeepa Shyamal', 
+            phone: '0753519186', 
+            address: '374/E/01 Udupila, Delgoda',
+            history: p.history?.length > 0 ? p.history : (initialSadeepa?.history || []),
+            prescriptions: p.prescriptions?.length > 0 ? p.prescriptions : (initialSadeepa?.prescriptions || []),
+            labReports: p.labReports?.length > 0 ? p.labReports : (initialSadeepa?.labReports || [])
+          };
         }
         if (p.name.toLowerCase() === 'prameesha shyanadi') {
           return { ...p, name: 'Prameesha Shyanadi', phone: '0756472537', address: '376/B/02 Gampaha, Weliweriya' };
