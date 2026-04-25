@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { generateId } from '../lib/utils';
 import { Patient, MedicalNote } from '../types';
 
 export default function Patients() {
-  const { patients, addPatient, updatePatient, doctors } = useHospitalData();
+  const { patients, addPatient, updatePatient, doctors, appointments } = useHospitalData();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
+  const patientAppointments = appointments.filter(a => a.patientId === selectedPatientId);
+  const upcomingAppointments = patientAppointments.filter(a => a.status === 'Scheduled');
 
   const filteredPatients = patients.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -111,6 +113,41 @@ export default function Patients() {
                     <MapPin className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium">{selectedPatient.address}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bento-card p-6 border-l-4 border-l-amber-500">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-500" />
+                Alerts & Notifications
+              </h3>
+              <div className="space-y-3">
+                {upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.map(app => (
+                    <div key={app.id} className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                      <p className="text-xs font-bold text-amber-700 uppercase tracking-tight mb-1">Upcoming Appointment</p>
+                      <p className="text-sm font-medium text-amber-900">
+                        {app.date} at {app.time}
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        With {doctors.find(d => d.id === app.doctorId)?.name || 'Doctor'}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No upcoming appointments.</p>
+                )}
+
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                  <p className="text-xs font-bold text-blue-700 uppercase tracking-tight mb-1 flex items-center gap-1.5">
+                    <Activity className="w-3 h-3" />
+                    Pending Lab Results
+                  </p>
+                  <ul className="text-xs text-blue-900 space-y-1 mt-1 list-disc pl-4">
+                    <li>Complete Blood Count (CBC) - Processing</li>
+                    <li>Lipid Profile - Scheduled for tomorrow</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -220,15 +257,27 @@ export default function Patients() {
         </button>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input 
             type="text" 
-            placeholder="Search by name or ID..." 
+            placeholder="Search by name..." 
             className="input-field pl-12 h-12 font-medium"
             value={search}
             onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="w-full md:w-64 relative">
+          <Clipboard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          <input 
+            type="text" 
+            placeholder="Filter by ID (e.g. p1)..." 
+            className="input-field pl-11 h-12 font-bold uppercase text-xs"
+            onChange={e => {
+              const val = e.target.value.toLowerCase();
+              setSearch(val); // Reuse same search state for simplicity or could add specific ID state
+            }}
           />
         </div>
         <button className="btn-secondary h-12 px-6">
