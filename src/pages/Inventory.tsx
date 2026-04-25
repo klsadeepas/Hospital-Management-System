@@ -6,17 +6,28 @@ import {
   History,
   ArrowUpRight,
   ArrowDownLeft,
-  Search
+  Search,
+  Calendar,
+  Filter
 } from 'lucide-react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { formatCurrency, cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { isBefore, addMonths, parseISO } from 'date-fns';
 
 export default function Inventory() {
   const { inventory, updateInventory } = useHospitalData();
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'low' | 'expiring'>('all');
 
-  const filtered = inventory.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = inventory.filter(i => {
+    const matchesSearch = i.name.toLowerCase().includes(search.toLowerCase());
+    if (filterType === 'low') return matchesSearch && i.quantity <= i.minQuantity;
+    if (filterType === 'expiring') {
+      return matchesSearch && i.expiryDate && isBefore(parseISO(i.expiryDate), addMonths(new Date(), 3));
+    }
+    return matchesSearch;
+  });
 
   return (
     <div className="space-y-6">
@@ -30,24 +41,57 @@ export default function Inventory() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="bento-card p-6 border-l-4 border-l-blue-500">
-          <p className="text-sm font-medium text-slate-500">Total Items</p>
-          <p className="text-2xl font-bold text-slate-900">{inventory.length}</p>
-        </div>
-        <div className="bento-card p-6 border-l-4 border-l-amber-500">
-          <p className="text-sm font-medium text-slate-500">Low Stock Alerts</p>
-          <p className="text-2xl font-bold text-amber-600">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <button 
+          onClick={() => setFilterType('all')}
+          className={cn(
+            "bento-card p-6 border-l-4 text-left transition-all",
+            filterType === 'all' ? "border-l-blue-500 bg-blue-50/10 shadow-md" : "border-l-transparent"
+          )}
+        >
+          <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+            <Package className="w-4 h-4" /> Total Items
+          </p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{inventory.length}</p>
+        </button>
+
+        <button 
+          onClick={() => setFilterType('low')}
+          className={cn(
+            "bento-card p-6 border-l-4 text-left transition-all",
+            filterType === 'low' ? "border-l-amber-500 bg-amber-50/10 shadow-md" : "border-l-transparent"
+          )}
+        >
+          <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" /> Low Stock
+          </p>
+          <p className="text-2xl font-bold text-amber-600 mt-1">
             {inventory.filter(i => i.quantity <= i.minQuantity).length}
           </p>
-        </div>
-        <div className="lg:col-span-2 bento-card h-full flex items-center px-6">
+        </button>
+
+        <button 
+          onClick={() => setFilterType('expiring')}
+          className={cn(
+            "bento-card p-6 border-l-4 text-left transition-all",
+            filterType === 'expiring' ? "border-l-rose-500 bg-rose-50/10 shadow-md" : "border-l-transparent"
+          )}
+        >
+          <p className="text-sm font-medium text-slate-500 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-rose-500" /> Expiring Soon
+          </p>
+          <p className="text-2xl font-bold text-rose-600 mt-1">
+            {inventory.filter(i => i.expiryDate && isBefore(parseISO(i.expiryDate), addMonths(new Date(), 3))).length}
+          </p>
+        </button>
+
+        <div className="bento-card h-full flex items-center px-6">
           <div className="w-full relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
               type="text" 
-              placeholder="Filter inventory..." 
-              className="input-field pl-10"
+              placeholder="Search pharmacy..." 
+              className="input-field pl-10 h-10 text-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -66,6 +110,7 @@ export default function Inventory() {
               <th className="px-6 py-4 text-sm font-semibold text-slate-600">Item Name</th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-600">Category</th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-600">Stock Level</th>
+              <th className="px-6 py-4 text-sm font-semibold text-slate-600">Expiry Date</th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-600">Unit Price</th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-right">Adjust Stock</th>
             </tr>
@@ -102,6 +147,23 @@ export default function Inventory() {
                       {item.quantity} {item.unit}
                     </span>
                   </div>
+                </td>
+                <td className="px-6 py-4">
+                  {item.expiryDate ? (
+                    <div className="flex flex-col">
+                      <span className={cn(
+                        "text-xs font-bold font-mono",
+                        item.expiryDate && isBefore(parseISO(item.expiryDate), addMonths(new Date(), 3)) ? "text-rose-600" : "text-slate-600"
+                      )}>
+                        {item.expiryDate}
+                      </span>
+                      {item.expiryDate && isBefore(parseISO(item.expiryDate), addMonths(new Date(), 3)) && (
+                        <span className="text-[10px] font-bold text-rose-500 uppercase tracking-tighter">Expiring Soon</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No date</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 font-mono text-slate-600">
                   {formatCurrency(item.price)}

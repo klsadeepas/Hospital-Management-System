@@ -1,5 +1,13 @@
 export type UserRole = 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'PHARMACIST';
 
+export interface Review {
+  id: string;
+  patientName: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 export interface Doctor {
   id: string;
   name: string;
@@ -8,6 +16,19 @@ export interface Doctor {
   phone: string;
   availability: string[]; // ['Monday', 'Tuesday'...]
   room: string;
+  reviews?: Review[];
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  medicationId: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  date: string;
+  notes?: string;
 }
 
 export interface Patient {
@@ -19,6 +40,7 @@ export interface Patient {
   phone: string;
   address: string;
   history: MedicalNote[];
+  prescriptions?: Prescription[];
 }
 
 export interface MedicalNote {
