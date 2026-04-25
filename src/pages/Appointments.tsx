@@ -458,34 +458,36 @@ export default function Appointments() {
 
                     <div className="flex flex-col gap-4 pt-4 border-t border-slate-100">
                       {selectedAppointment.status === 'Scheduled' && (
-                        <div className="flex gap-4">
-                          <button 
-                            onClick={handleEditInit}
-                            className="btn-secondary flex-1 h-12 text-blue-600 hover:bg-blue-50"
-                          >
-                            <Edit2 className="w-4 h-4" /> Edit Appointment
-                          </button>
+                        <>
+                          <div className="flex gap-4">
+                            <button 
+                              onClick={handleEditInit}
+                              className="btn-secondary flex-1 h-12 text-blue-600 hover:bg-blue-50"
+                            >
+                              <Edit2 className="w-4 h-4" /> Edit Appointment
+                            </button>
+                            <button 
+                              onClick={() => {
+                                updateAppointmentStatus(selectedAppointment.id, 'Completed');
+                                setSelectedAppointment(null);
+                              }}
+                              className="btn-primary flex-1 h-12 justify-center bg-emerald-600 hover:bg-emerald-700"
+                            >
+                              <Check className="w-4 h-4" /> Mark Completed
+                            </button>
+                          </div>
+                          
                           <button 
                             onClick={() => {
-                              updateAppointmentStatus(selectedAppointment.id, 'Completed');
+                              updateAppointmentStatus(selectedAppointment.id, 'Cancelled');
                               setSelectedAppointment(null);
                             }}
-                            className="btn-primary flex-1 h-12 justify-center bg-emerald-600 hover:bg-emerald-700"
+                            className="w-full h-12 text-slate-400 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                           >
-                            <Check className="w-4 h-4" /> Mark Completed
+                            <Trash2 className="w-4 h-4" /> Cancel Appointment
                           </button>
-                        </div>
+                        </>
                       )}
-                      
-                      <button 
-                        onClick={() => {
-                          updateAppointmentStatus(selectedAppointment.id, 'Cancelled');
-                          setSelectedAppointment(null);
-                        }}
-                        className="w-full h-12 text-slate-400 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4" /> Cancel Appointment
-                      </button>
                     </div>
                   </>
                 )}
