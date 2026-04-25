@@ -33,43 +33,24 @@ This project is built with:
 
 ## Image 5
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/5.png)
+![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/7.png)
 
 ## Image 6
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/6.png)
+![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/8.png)
 
 ## Image 7
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/7.png)
+![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/11.png)
+
 
 ## Image 8
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/8.png)
+![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/13.png)
 
 ## Image 9
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/9.png)
-
-## Image 10
-
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/10.png)
-
-## Image 11
-
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/11.png)
-
-## Image 12
-
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/12.png)
-
-## Image 13
-
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/13.png)
-
-
 ![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/14.png)
 
-![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/15.png)
 
 
