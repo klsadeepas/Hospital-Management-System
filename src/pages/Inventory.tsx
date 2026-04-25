@@ -87,11 +87,10 @@ export default function Inventory() {
 
         <div className="bento-card h-full flex items-center px-6">
           <div className="w-full relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input 
               type="text" 
               placeholder="Search pharmacy..." 
-              className="input-field pl-10 h-10 text-sm"
+              className="input-field px-4 h-10 text-sm"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />

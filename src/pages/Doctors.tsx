@@ -15,7 +15,9 @@ import {
   AlertCircle,
   Star,
   MessageSquare,
-  Edit2
+  Edit2,
+  Eye,
+  User
 } from 'lucide-react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { generateId } from '../lib/utils';
@@ -38,6 +40,7 @@ import { Doctor } from '../types';
 export default function Doctors() {
   const { doctors, addDoctor, updateDoctor } = useHospitalData();
   const [specializationFilter, setSpecializationFilter] = useState<string>('All');
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
@@ -121,7 +124,7 @@ export default function Doctors() {
     }
   };
 
-  const [detailTab, setDetailTab] = useState<'availability' | 'reviews'>('availability');
+  const [detailTab, setDetailTab] = useState<'profile' | 'availability' | 'reviews'>('profile');
 
   const getDoctorStats = (doctor: Doctor) => {
     const reviews = doctor.reviews || [];
@@ -132,10 +135,19 @@ export default function Doctors() {
   };
 
   const specializations = ['All', ...Array.from(new Set(doctors.map(d => d.specialization)))];
+  const ratings = [
+    { label: 'All Ratings', value: 0 },
+    { label: '4.0+ Stars', value: 4.0 },
+    { label: '3.0+ Stars', value: 3.0 },
+    { label: '2.0+ Stars', value: 2.0 },
+  ];
 
-  const filteredDoctors = specializationFilter === 'All' 
-    ? doctors 
-    : doctors.filter(d => d.specialization === specializationFilter);
+  const filteredDoctors = doctors.filter(doctor => {
+    const matchesSpec = specializationFilter === 'All' || doctor.specialization === specializationFilter;
+    const { avgRating } = getDoctorStats(doctor);
+    const matchesRating = parseFloat(avgRating) >= ratingFilter;
+    return matchesSpec && matchesRating;
+  });
 
   const dayMap: Record<string, number> = {
     'Sunday': 0,
@@ -154,8 +166,8 @@ export default function Doctors() {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Medical Staff</h1>
           <p className="text-slate-500 font-medium">Manage doctor profiles and availability schedules.</p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="flex-1 md:w-64 relative">
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          <div className="flex-1 md:w-48 relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <select 
               value={specializationFilter}
@@ -164,6 +176,24 @@ export default function Doctors() {
             >
               {specializations.map(spec => (
                 <option key={spec} value={spec}>{spec}</option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="flex-1 md:w-48 relative">
+            <Star className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <select 
+              value={ratingFilter}
+              onChange={(e) => setRatingFilter(parseFloat(e.target.value))}
+              className="w-full bg-white border border-slate-200 rounded-xl px-10 py-2.5 text-sm font-bold text-slate-700 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+            >
+              {ratings.map(rating => (
+                <option key={rating.value} value={rating.value}>{rating.label}</option>
               ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -232,7 +262,7 @@ export default function Doctors() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+              <div className="grid grid-cols-1 gap-y-3 text-sm">
                 <div className="flex items-center gap-2 text-slate-600">
                   <Mail className="w-4 h-4 text-slate-400" /> {doctor.email}
                 </div>
@@ -244,34 +274,17 @@ export default function Doctors() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex justify-between items-end">
-                <div className="flex gap-4">
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Weekly Schedule</p>
-                    <div className="flex flex-wrap gap-2">
-                      {doctor.availability.map((day) => (
-                        <span key={day} className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase">
-                          {day.slice(0, 3)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleEditInit(doctor)}
-                    className="p-2 bg-slate-50 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all"
-                  >
-                    <Edit2 className="w-5 h-5" />
-                  </button>
                   <button 
                     onClick={() => {
                       setSelectedDoctor(doctor);
+                      setDetailTab('profile');
                       setCurrentMonth(new Date());
                     }}
-                    className="p-2 bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-sm"
                   >
-                    <CalendarIcon className="w-5 h-5" />
+                    <Eye className="w-4 h-4" /> View Profile
                   </button>
                 </div>
               </div>
@@ -284,12 +297,15 @@ export default function Doctors() {
         <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl p-20 text-center">
           <Stethoscope className="w-12 h-12 text-slate-200 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-900">No doctors found</h3>
-          <p className="text-slate-500">No medical staff currently match the selected specialization.</p>
+          <p className="text-slate-500">No medical staff currently match the selected specialization and rating criteria.</p>
           <button 
-            onClick={() => setSpecializationFilter('All')} 
+            onClick={() => {
+              setSpecializationFilter('All');
+              setRatingFilter(0);
+            }} 
             className="mt-4 text-blue-600 font-bold text-sm tracking-tight hover:underline"
           >
-            Clear specialized filter
+            Clear all filters
           </button>
         </div>
       )}
@@ -316,6 +332,15 @@ export default function Doctors() {
                     <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{selectedDoctor.name}</h3>
                     <div className="flex gap-4 mt-2">
                       <button 
+                        onClick={() => setDetailTab('profile')}
+                        className={cn(
+                          "text-[10px] font-bold uppercase tracking-widest transition-colors pb-1 border-b-2",
+                          detailTab === 'profile' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent hover:text-slate-600"
+                        )}
+                      >
+                        Profile
+                      </button>
+                      <button 
                         onClick={() => setDetailTab('availability')}
                         className={cn(
                           "text-[10px] font-bold uppercase tracking-widest transition-colors pb-1 border-b-2",
@@ -340,6 +365,67 @@ export default function Doctors() {
                   </button>
                 </div>
 
+                {detailTab === 'profile' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                        <User className="w-6 h-6 text-slate-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{selectedDoctor.name}</p>
+                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">{selectedDoctor.specialization} Specialist</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="p-4 bg-white border border-slate-100 rounded-xl space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-slate-400" />
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                            <p className="text-xs font-bold text-slate-700">{selectedDoctor.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Phone className="w-4 h-4 text-slate-400" />
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
+                            <p className="text-xs font-bold text-slate-700">{selectedDoctor.phone}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl">
+                        <MapPin className="w-4 h-4 text-slate-400" />
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">Room</p>
+                          <p className="text-xs font-bold text-slate-700">Room {selectedDoctor.room}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl">
+                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Weekly Schedule</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedDoctor.availability.map((day) => (
+                            <span key={day} className="px-2 py-1 bg-white text-blue-600 border border-blue-100 rounded text-[10px] font-bold uppercase">
+                              {day.slice(0, 3)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        handleEditInit(selectedDoctor);
+                        setSelectedDoctor(null);
+                      }}
+                      className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold transition-all hover:bg-slate-800 flex items-center justify-center gap-2"
+                    >
+                      <Edit2 className="w-4 h-4" /> Edit Profile Details
+                    </button>
+                  </div>
+                )}
+
                 {detailTab === 'availability' && (
                   <div className="flex items-center justify-between mb-6 bg-slate-50 p-2 rounded-2xl border border-slate-100">
                     <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-white rounded-xl text-slate-500 transition-all">
@@ -354,7 +440,7 @@ export default function Doctors() {
               </div>
 
               <div className="px-8 pb-8">
-                {detailTab === 'availability' ? (
+                {detailTab === 'profile' ? null : detailTab === 'availability' ? (
                   <>
                     <div className="grid grid-cols-7 border-t border-l border-slate-100 rounded-xl overflow-hidden shadow-sm">
                       {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (

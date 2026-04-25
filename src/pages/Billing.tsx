@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   CreditCard, 
-  Search, 
   Download, 
   Printer, 
   CheckCircle2, 
@@ -86,8 +85,7 @@ export default function Billing() {
         <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-white">
           <h3 className="font-bold text-slate-900">Invoicing History</h3>
           <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input type="text" placeholder="Search invoices..." className="input-field pl-9 text-sm py-1.5" />
+            <input type="text" placeholder="Search invoices..." className="input-field px-4 text-sm py-1.5" />
           </div>
         </div>
 
