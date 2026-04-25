@@ -38,7 +38,7 @@ import {
 import { Doctor } from '../types';
 
 export default function Doctors() {
-  const { doctors, addDoctor, updateDoctor } = useHospitalData();
+  const { doctors, addDoctor, updateDoctor, appointments, patients } = useHospitalData();
   const [specializationFilter, setSpecializationFilter] = useState<string>('All');
   const [ratingFilter, setRatingFilter] = useState<number>(0);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -48,6 +48,13 @@ export default function Doctors() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    patientName: '',
+    rating: 5,
+    comment: ''
+  });
+
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -124,7 +131,28 @@ export default function Doctors() {
     }
   };
 
-  const [detailTab, setDetailTab] = useState<'profile' | 'availability' | 'reviews'>('profile');
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDoctor) return;
+
+    const newReview = {
+      id: generateId(),
+      ...reviewForm,
+      date: format(new Date(), 'yyyy-MM-dd')
+    };
+
+    const updatedDoctor: Doctor = {
+      ...selectedDoctor,
+      reviews: [...(selectedDoctor.reviews || []), newReview]
+    };
+
+    updateDoctor(updatedDoctor);
+    setSelectedDoctor(updatedDoctor); // Update local state to show new review
+    setShowReviewForm(false);
+    setReviewForm({ patientName: '', rating: 5, comment: '' });
+  };
+
+  const [detailTab, setDetailTab] = useState<'profile' | 'availability' | 'reviews' | 'appointments'>('profile');
 
   const getDoctorStats = (doctor: Doctor) => {
     const reviews = doctor.reviews || [];
@@ -358,6 +386,15 @@ export default function Doctors() {
                       >
                         Reviews ({getDoctorStats(selectedDoctor).reviewCount})
                       </button>
+                      <button 
+                        onClick={() => setDetailTab('appointments')}
+                        className={cn(
+                          "text-[10px] font-bold uppercase tracking-widest transition-colors pb-1 border-b-2",
+                          detailTab === 'appointments' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent hover:text-slate-600"
+                        )}
+                      >
+                        History
+                      </button>
                     </div>
                   </div>
                   <button onClick={() => setSelectedDoctor(null)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400">
@@ -493,8 +530,82 @@ export default function Doctors() {
                       </p>
                     </div>
                   </>
-                ) : (
+                ) : detailTab === 'reviews' ? (
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="flex justify-between items-center mb-2">
+                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Patient Reviews</h4>
+                       <button 
+                        onClick={() => setShowReviewForm(!showReviewForm)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase transition-all hover:bg-blue-100"
+                       >
+                        <Plus className="w-3 h-3" /> {showReviewForm ? 'Cancel' : 'Write Review'}
+                       </button>
+                    </div>
+
+                    <AnimatePresence>
+                      {showReviewForm && (
+                        <motion.form 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          onSubmit={handleReviewSubmit}
+                          className="p-4 bg-blue-50/50 border border-blue-100 rounded-2xl space-y-4 overflow-hidden mb-6"
+                        >
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2 sm:col-span-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Patient Name</label>
+                              <select 
+                                value={reviewForm.patientName}
+                                onChange={(e) => setReviewForm({ ...reviewForm, patientName: e.target.value })}
+                                className="w-full bg-white border border-blue-100 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                required
+                              >
+                                <option value="">Select Patient</option>
+                                {patients.map(p => (
+                                  <option key={p.id} value={p.name}>{p.name}</option>
+                                ))}
+                                <option value="Guest Patient">Guest Patient</option>
+                              </select>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Rating</label>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                    className="p-1 hover:scale-110 transition-transform"
+                                  >
+                                    <Star className={cn(
+                                      "w-4 h-4",
+                                      star <= reviewForm.rating ? "text-amber-500 fill-amber-500" : "text-slate-200"
+                                    )} />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="col-span-2">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Review Comment</label>
+                              <textarea 
+                                value={reviewForm.comment}
+                                onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                                className="w-full bg-white border border-blue-100 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                placeholder="Describe your experience..."
+                                required
+                              />
+                            </div>
+                          </div>
+                          <button 
+                            type="submit"
+                            className="w-full py-3 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2"
+                          >
+                            Submit Review
+                          </button>
+                        </motion.form>
+                      )}
+                    </AnimatePresence>
+
                     {selectedDoctor.reviews && selectedDoctor.reviews.length > 0 ? (
                       selectedDoctor.reviews.map((review) => (
                         <div key={review.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
@@ -517,6 +628,52 @@ export default function Doctors() {
                         <p className="text-sm text-slate-400 font-medium italic">No reviews yet for this doctor.</p>
                       </div>
                     )}
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {(() => {
+                      const doctorAppointments = appointments
+                        .filter(a => a.doctorId === selectedDoctor.id)
+                        .sort((a, b) => new Date(b.date + ' ' + b.time).getTime() - new Date(a.date + ' ' + a.time).getTime());
+
+                      if (doctorAppointments.length === 0) {
+                        return (
+                          <div className="text-center py-10">
+                            <CalendarIcon className="w-10 h-10 text-slate-200 mx-auto mb-3" />
+                            <p className="text-sm text-slate-400 font-medium italic">No appointment history found.</p>
+                          </div>
+                        );
+                      }
+
+                      return doctorAppointments.map((appointment) => {
+                        const patient = patients.find(p => p.id === appointment.patientId);
+                        return (
+                          <div key={appointment.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
+                                <Users className="w-5 h-5 text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">{patient?.name || 'Unknown Patient'}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase">{appointment.date}</span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                  <span className="text-[10px] text-slate-400 font-bold uppercase">{appointment.time}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <span className={cn(
+                              "px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border",
+                              appointment.status === 'Completed' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                              appointment.status === 'Cancelled' ? "bg-red-50 text-red-600 border-red-100" :
+                              "bg-blue-50 text-blue-600 border-blue-100"
+                            )}>
+                              {appointment.status}
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 )}
               </div>

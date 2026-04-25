@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   Stethoscope,
-  Search
+  Search,
+  LogOut
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -25,7 +26,11 @@ const navItems = [
   { icon: CreditCard, label: 'Billing', path: '/billing' },
 ];
 
-export default function DashboardLayout() {
+interface DashboardLayoutProps {
+  onLogout: () => void;
+}
+
+export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
   const [isSidebarOpen, setSidebarOpen] = React.useState(true);
 
   return (
@@ -86,13 +91,28 @@ export default function DashboardLayout() {
         </nav>
 
         <div className="p-6 border-t border-slate-100">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 bg-slate-100 rounded-full flex-shrink-0 border border-slate-200"></div>
+          <div className="flex items-center justify-between gap-3 overflow-hidden">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <img 
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" 
+                className="w-10 h-10 bg-slate-100 rounded-full flex-shrink-0 border border-slate-200" 
+                alt="Admin avatar"
+              />
+              {isSidebarOpen && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-shrink-0 overflow-hidden">
+                  <p className="text-sm font-bold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">Dr. Sarah Chen</p>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">Admin</p>
+                </motion.div>
+              )}
+            </div>
             {isSidebarOpen && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <p className="text-sm font-bold text-slate-900">Dr. Sarah Chen</p>
-                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">Admin</p>
-              </motion.div>
+              <button 
+                onClick={onLogout}
+                className="p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             )}
           </div>
           <button 
@@ -107,7 +127,7 @@ export default function DashboardLayout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10 shrink-0">
-          <h2 className="text-lg font-bold tracking-tight text-slate-900">Hospital Command Center</h2>
+          <h2 className="text-lg font-bold tracking-tight text-slate-900">Hospital Management System</h2>
           <div className="flex items-center gap-6">
             <div className="hidden sm:flex items-center gap-2">
               <span className="status-badge bg-emerald-100 text-emerald-700">
