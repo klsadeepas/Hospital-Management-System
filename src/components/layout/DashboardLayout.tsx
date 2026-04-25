@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import AdminProfileModal from '../modals/AdminProfileModal';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -32,6 +33,15 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
   const [isSidebarOpen, setSidebarOpen] = React.useState(true);
+  const [isAdminProfileOpen, setIsAdminProfileOpen] = React.useState(false);
+
+  const adminInfo = {
+    name: 'K.L Sadeepa',
+    email: 'klsadeepas@gmail.com',
+    role: 'Admin',
+    phone: '+94 77 123 4567',
+    joinedDate: 'Jan 20, 2024'
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
@@ -92,19 +102,24 @@ export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
 
         <div className="p-6 border-t border-slate-100">
           <div className="flex items-center justify-between gap-3 overflow-hidden">
-            <div className="flex items-center gap-3 overflow-hidden">
+            <button 
+              onClick={() => setIsAdminProfileOpen(true)}
+              className="flex items-center gap-3 overflow-hidden hover:bg-slate-50 transition-all rounded-xl p-1 -m-1 group"
+            >
               <img 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" 
-                className="w-10 h-10 bg-slate-100 rounded-full flex-shrink-0 border border-slate-200" 
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${adminInfo.name}`} 
+                className="w-10 h-10 bg-slate-100 rounded-full flex-shrink-0 border border-slate-200 group-hover:border-blue-200 transition-colors" 
                 alt="Admin avatar"
               />
               {isSidebarOpen && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-shrink-0 overflow-hidden">
-                  <p className="text-sm font-bold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">Dr. Sarah Chen</p>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">Admin</p>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-shrink-0 overflow-hidden text-left">
+                  <p className="text-sm font-bold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] group-hover:text-blue-600 transition-colors">
+                    {adminInfo.name}
+                  </p>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">{adminInfo.role}</p>
                 </motion.div>
               )}
-            </div>
+            </button>
             {isSidebarOpen && (
               <button 
                 onClick={onLogout}
@@ -150,6 +165,12 @@ export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
           <Outlet />
         </div>
       </main>
+
+      <AdminProfileModal 
+        isOpen={isAdminProfileOpen}
+        onClose={() => setIsAdminProfileOpen(false)}
+        admin={adminInfo}
+      />
     </div>
   );
 }
