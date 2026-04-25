@@ -6,9 +6,11 @@ The only requirement is having Node.js & npm installed
 
 # What technologies are used for this project?
 This project is built with:
+- React
 - Vite
 - TypeScript
-- React
+- tailwindcss
+
 # Screenshot of web application
 
 ![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/ba119589cf9f4cccab1594a55fd256ee88a17958/images/1.png)
