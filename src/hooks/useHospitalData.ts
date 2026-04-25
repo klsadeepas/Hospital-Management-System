@@ -36,6 +36,10 @@ export function useHospitalData() {
     setState(prev => ({ ...prev, patients: [...prev.patients, patient] }));
   };
 
+  const addDoctor = (doctor: Doctor) => {
+    setState(prev => ({ ...prev, doctors: [...prev.doctors, doctor] }));
+  };
+
   const updatePatient = (patient: Patient) => {
     setState(prev => ({
       ...prev,
@@ -87,6 +91,7 @@ export function useHospitalData() {
   return {
     ...state,
     addPatient,
+    addDoctor,
     updatePatient,
     addAppointment,
     updateAppointment,
