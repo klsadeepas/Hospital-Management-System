@@ -159,7 +159,7 @@ export default function Appointments() {
                         "bg-blue-50 text-blue-700 border border-blue-100"
                       )}
                     >
-                      {appt.time} - {patients.find(p => p.id === appt.patientId)?.name}
+                      {appt.time} - {patients.find(p => p.id === appt.patientId)?.name || 'Unknown Patient'}
                     </button>
                   ))}
                   {dayAppointments.length > 3 && (
@@ -228,9 +228,9 @@ export default function Appointments() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                        {patients.find(p => p.id === appt.patientId)?.name[0]}
+                        {patients.find(p => p.id === appt.patientId)?.name?.[0] || '?'}
                       </div>
-                      <span className="font-bold text-slate-900">{patients.find(p => p.id === appt.patientId)?.name}</span>
+                      <span className="font-bold text-slate-900">{patients.find(p => p.id === appt.patientId)?.name || 'Unknown Patient'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-500">
@@ -419,10 +419,10 @@ export default function Appointments() {
                         <p className="label-text">Patient</p>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                            {patients.find(p => p.id === selectedAppointment.patientId)?.name[0]}
+                            {patients.find(p => p.id === selectedAppointment.patientId)?.name?.[0] || '?'}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-900">{patients.find(p => p.id === selectedAppointment.patientId)?.name}</p>
+                            <p className="text-sm font-bold text-slate-900">{patients.find(p => p.id === selectedAppointment.patientId)?.name || 'Unknown Patient'}</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase">ID: {selectedAppointment.patientId}</p>
                           </div>
                         </div>
