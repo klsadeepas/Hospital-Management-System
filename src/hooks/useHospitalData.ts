@@ -11,6 +11,7 @@ const INITIAL_STATE: HospitalState = {
       phone: '0715559856', 
       availability: ['Monday', 'Wednesday', 'Friday'], 
       room: 'A-101',
+      image: '/dr_sarah_wilson.png',
       reviews: [
         { id: 'r1', patientName: 'Kamal Perera', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
         { id: 'r2', patientName: 'Nimal Udayanga', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
@@ -24,8 +25,35 @@ const INITIAL_STATE: HospitalState = {
       phone: '0705556745', 
       availability: ['Tuesday', 'Thursday'], 
       room: 'B-202',
+      image: '/dr_james_miller.png',
       reviews: [
         { id: 'r3', patientName: 'Michael Corleone', rating: 5, comment: 'Very thorough explanation of my condition.', date: '2024-03-20' }
+      ]
+    },
+    { 
+      id: '3', 
+      name: 'Dr. Robert Chen', 
+      specialization: 'Pediatrics', 
+      email: 'robert@gmail.com', 
+      phone: '0771234567', 
+      availability: ['Monday', 'Tuesday', 'Thursday'], 
+      room: 'C-303',
+      image: '/dr_robert_chen.png',
+      reviews: [
+        { id: 'r4', patientName: 'Sadeepa Shyamal', rating: 5, comment: 'Great with kids, very patient.', date: '2024-04-01' }
+      ]
+    },
+    { 
+      id: '4', 
+      name: 'Dr. Elena Rodriguez', 
+      specialization: 'Orthopedics', 
+      email: 'elena@gmail.com', 
+      phone: '0769876543', 
+      availability: ['Wednesday', 'Friday', 'Saturday'], 
+      room: 'D-404',
+      image: '/dr_elena_rodriguez.png',
+      reviews: [
+        { id: 'r5', patientName: 'Kamal Perera', rating: 4, comment: 'Recovery plan is working well.', date: '2024-04-10' }
       ]
     },
   ],
@@ -212,12 +240,25 @@ export function useHospitalData() {
     }
     
     if (data.doctors) {
+      // Ensure all core doctors exist
+      INITIAL_STATE.doctors.forEach(initialDoctor => {
+        if (!data.doctors.find((d: Doctor) => d.id === initialDoctor.id || d.name === initialDoctor.name)) {
+          data.doctors.push(initialDoctor);
+        }
+      });
+      
       data.doctors = data.doctors.map((d: Doctor) => {
         if (d.name === 'Dr. Sarah Wilson') {
-          return { ...d, email: 'sarah@gmail.com', phone: '0715559856' };
+          return { ...d, email: 'sarah@gmail.com', phone: '0715559856', image: '/dr_sarah_wilson.png' };
         }
         if (d.name === 'Dr. James Miller') {
-          return { ...d, email: 'james@gmail.com', phone: '0705556745' };
+          return { ...d, email: 'james@gmail.com', phone: '0705556745', image: '/dr_james_miller.png' };
+        }
+        if (d.name === 'Dr. Robert Chen') {
+          return { ...d, email: 'robert@gmail.com', phone: '0771234567', image: '/dr_robert_chen.png' };
+        }
+        if (d.name === 'Dr. Elena Rodriguez') {
+          return { ...d, email: 'elena@gmail.com', phone: '0769876543', image: '/dr_elena_rodriguez.png' };
         }
         if (d.reviews) {
           const updatedReviews = d.reviews.map(r => {
