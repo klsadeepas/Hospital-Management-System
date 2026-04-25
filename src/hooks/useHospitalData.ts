@@ -12,8 +12,8 @@ const INITIAL_STATE: HospitalState = {
       availability: ['Monday', 'Wednesday', 'Friday'], 
       room: 'A-101',
       reviews: [
-        { id: 'r1', patientName: 'John Doe', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
-        { id: 'r2', patientName: 'Jane Smith', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
+        { id: 'r1', patientName: 'Kamal perera', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
+        { id: 'r2', patientName: 'Nimal udayanga', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
       ]
     },
     { 
@@ -30,8 +30,8 @@ const INITIAL_STATE: HospitalState = {
     },
   ],
   patients: [
-    { id: 'p1', name: 'John Doe', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '555-1234', address: '123 Pine St', history: [] },
-    { id: 'p2', name: 'Jane Smith', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '555-5678', address: '456 Oak Ave', history: [] },
+    { id: 'p1', name: 'Kamal perera', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '555-1234', address: '123 Pine St', history: [] },
+    { id: 'p2', name: 'Nimal udayanga', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '555-5678', address: '456 Oak Ave', history: [] },
   ],
   appointments: [],
   inventory: [
