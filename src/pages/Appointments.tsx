@@ -34,13 +34,14 @@ import {
 } from 'date-fns';
 
 export default function Appointments() {
-  const { doctors, patients, appointments, addAppointment, updateAppointmentStatus } = useHospitalData();
+  const { doctors, patients, appointments, addAppointment, updateAppointment, updateAppointmentStatus } = useHospitalData();
   const [view, setView] = useState<'table' | 'calendar'>('table');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   // Modals state
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -50,6 +51,32 @@ export default function Appointments() {
     time: '09:00',
     notes: ''
   });
+
+  const handleEditInit = () => {
+    if (selectedAppointment) {
+      setFormData({
+        patientId: selectedAppointment.patientId,
+        doctorId: selectedAppointment.doctorId,
+        date: selectedAppointment.date,
+        time: selectedAppointment.time,
+        notes: selectedAppointment.notes || ''
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedAppointment) {
+      const updated: Appointment = {
+        ...selectedAppointment,
+        ...formData
+      };
+      updateAppointment(updated);
+      setSelectedAppointment(updated);
+      setIsEditing(false);
+    }
+  };
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,101 +326,168 @@ export default function Appointments() {
       <AnimatePresence>
         {selectedAppointment && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedAppointment(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => {
+                setSelectedAppointment(null);
+                setIsEditing(false);
+              }} 
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
               <div className="p-8 pb-0">
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold inline-flex mb-2",
-                      selectedAppointment.status === 'Scheduled' ? "bg-blue-50 text-blue-600" :
-                      selectedAppointment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
-                      "bg-slate-100 text-slate-400"
-                    )}>
-                      {selectedAppointment.status}
-                    </span>
-                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Appointment Details</h3>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Ref: {selectedAppointment.id}</p>
+                    {!isEditing && (
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold inline-flex mb-2",
+                        selectedAppointment.status === 'Scheduled' ? "bg-blue-50 text-blue-600" :
+                        selectedAppointment.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
+                        "bg-slate-100 text-slate-400"
+                      )}>
+                        {selectedAppointment.status}
+                      </span>
+                    )}
+                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+                      {isEditing ? 'Edit Appointment' : 'Appointment Details'}
+                    </h3>
+                    {!isEditing && <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Ref: {selectedAppointment.id}</p>}
                   </div>
-                  <button onClick={() => setSelectedAppointment(null)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400"><X className="w-5 h-5" /></button>
+                  <button 
+                    onClick={() => {
+                      setSelectedAppointment(null);
+                      setIsEditing(false);
+                    }} 
+                    className="p-2 hover:bg-slate-50 rounded-xl text-slate-400"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <p className="label-text">Patient</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
-                        {patients.find(p => p.id === selectedAppointment.patientId)?.name[0]}
+              <div className="p-8 pt-0 space-y-6">
+                {isEditing ? (
+                  <form onSubmit={handleEditSubmit} className="space-y-4 pt-4">
+                    <div>
+                      <label className="label-text">Patient</label>
+                      <select className="input-field h-11" value={formData.patientId} onChange={e => setFormData({ ...formData, patientId: e.target.value })} required>
+                        {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label-text">Doctor</label>
+                      <select className="input-field h-11" value={formData.doctorId} onChange={e => setFormData({ ...formData, doctorId: e.target.value })} required>
+                        {doctors.map(d => <option key={d.id} value={d.id}>{d.name} ({d.specialization})</option>)}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="label-text">Date</label>
+                        <input type="date" className="input-field h-11" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} required />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{patients.find(p => p.id === selectedAppointment.patientId)?.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">ID: {selectedAppointment.patientId}</p>
+                        <label className="label-text">Time</label>
+                        <input type="time" className="input-field h-11" value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} required />
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="label-text">Doctor</p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                        <Stethoscope className="w-5 h-5" />
+                    <div>
+                      <label className="label-text">Objective / Notes</label>
+                      <textarea className="input-field min-h-[100px]" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Reason for the visit..." />
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button type="button" onClick={() => setIsEditing(false)} className="btn-secondary flex-1 h-11">Cancel</button>
+                      <button type="submit" className="btn-primary flex-1 h-11 justify-center">Save Changes</button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <p className="label-text">Patient</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                            {patients.find(p => p.id === selectedAppointment.patientId)?.name[0]}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{patients.find(p => p.id === selectedAppointment.patientId)?.name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">ID: {selectedAppointment.patientId}</p>
+                          </div>
+                        </div>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{doctors.find(d => d.id === selectedAppointment.doctorId)?.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{doctors.find(d => d.id === selectedAppointment.doctorId)?.specialization}</p>
+                        <p className="label-text">Doctor</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                            <Stethoscope className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{doctors.find(d => d.id === selectedAppointment.doctorId)?.name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">{doctors.find(d => d.id === selectedAppointment.doctorId)?.specialization}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <CalendarIcon className="w-5 h-5 text-blue-500" />
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Date</p>
-                      <p className="text-sm font-bold text-slate-900">{selectedAppointment.date}</p>
+                    <div className="grid grid-cols-2 gap-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex items-center gap-3">
+                        <CalendarIcon className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Date</p>
+                          <p className="text-sm font-bold text-slate-900">{selectedAppointment.date}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-emerald-500" />
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Time</p>
+                          <p className="text-sm font-bold text-slate-900">{selectedAppointment.time}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-emerald-500" />
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Time</p>
-                      <p className="text-sm font-bold text-slate-900">{selectedAppointment.time}</p>
-                    </div>
-                  </div>
-                </div>
 
-                {selectedAppointment.notes && (
-                  <div>
-                    <p className="label-text">Clinical Notes / Objective</p>
-                    <div className="p-4 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 leading-relaxed italic">
-                      "{selectedAppointment.notes}"
-                    </div>
-                  </div>
-                )}
+                    {selectedAppointment.notes && (
+                      <div>
+                        <p className="label-text">Clinical Notes / Objective</p>
+                        <div className="p-4 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 leading-relaxed italic">
+                          "{selectedAppointment.notes}"
+                        </div>
+                      </div>
+                    )}
 
-                {selectedAppointment.status === 'Scheduled' && (
-                  <div className="flex gap-4 pt-4 border-t border-slate-100">
-                    <button 
-                      onClick={() => {
-                        updateAppointmentStatus(selectedAppointment.id, 'Cancelled');
-                        setSelectedAppointment(null);
-                      }}
-                      className="btn-secondary flex-1 h-12 text-red-600 hover:bg-red-50 hover:border-red-100"
-                    >
-                      <Trash2 className="w-4 h-4" /> Cancel Appointment
-                    </button>
-                    <button 
-                      onClick={() => {
-                        updateAppointmentStatus(selectedAppointment.id, 'Completed');
-                        setSelectedAppointment(null);
-                      }}
-                      className="btn-primary flex-1 h-12 justify-center bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      <Check className="w-4 h-4" /> Mark Completed
-                    </button>
-                  </div>
+                    <div className="flex flex-col gap-4 pt-4 border-t border-slate-100">
+                      {selectedAppointment.status === 'Scheduled' && (
+                        <div className="flex gap-4">
+                          <button 
+                            onClick={handleEditInit}
+                            className="btn-secondary flex-1 h-12 text-blue-600 hover:bg-blue-50"
+                          >
+                            <Edit2 className="w-4 h-4" /> Edit Appointment
+                          </button>
+                          <button 
+                            onClick={() => {
+                              updateAppointmentStatus(selectedAppointment.id, 'Completed');
+                              setSelectedAppointment(null);
+                            }}
+                            className="btn-primary flex-1 h-12 justify-center bg-emerald-600 hover:bg-emerald-700"
+                          >
+                            <Check className="w-4 h-4" /> Mark Completed
+                          </button>
+                        </div>
+                      )}
+                      
+                      <button 
+                        onClick={() => {
+                          updateAppointmentStatus(selectedAppointment.id, 'Cancelled');
+                          setSelectedAppointment(null);
+                        }}
+                        className="w-full h-12 text-slate-400 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" /> Cancel Appointment
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             </motion.div>
