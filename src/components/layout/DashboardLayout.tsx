@@ -113,29 +113,24 @@ export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
               />
               {isSidebarOpen && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-shrink-0 overflow-hidden text-left">
-                  <p className="text-sm font-bold text-slate-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] group-hover:text-blue-600 transition-colors">
+                  <p className="text-sm font-bold text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] group-hover:text-blue-600 transition-colors">
                     {adminInfo.name}
                   </p>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 leading-none">{adminInfo.role}</p>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500 leading-none">{adminInfo.role}</p>
                 </motion.div>
               )}
             </button>
             {isSidebarOpen && (
               <button 
                 onClick={onLogout}
-                className="p-2 text-slate-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
+                className="p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all"
                 title="Log Out"
               >
                 <LogOut className="w-4 h-4" />
               </button>
             )}
           </div>
-          <button 
-            onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="mt-6 w-full flex items-center justify-center p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-lg transition-all"
-          >
-            {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
+          
         </div>
       </motion.aside>
 
