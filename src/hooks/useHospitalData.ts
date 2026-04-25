@@ -7,8 +7,8 @@ const INITIAL_STATE: HospitalState = {
       id: '1', 
       name: 'Dr. Sarah Wilson', 
       specialization: 'Cardiology', 
-      email: 'sarah@mediflow.com', 
-      phone: '555-0101', 
+      email: 'sarah@gmail.com', 
+      phone: '0715559856', 
       availability: ['Monday', 'Wednesday', 'Friday'], 
       room: 'A-101',
       reviews: [
@@ -20,8 +20,8 @@ const INITIAL_STATE: HospitalState = {
       id: '2', 
       name: 'Dr. James Miller', 
       specialization: 'Neurology', 
-      email: 'james@mediflow.com', 
-      phone: '555-0102', 
+      email: 'james@gmail.com', 
+      phone: '0705556745', 
       availability: ['Tuesday', 'Thursday'], 
       room: 'B-202',
       reviews: [
@@ -35,7 +35,12 @@ const INITIAL_STATE: HospitalState = {
     { id: 'p3', name: 'Sadeepa Shyamal', age: 28, gender: 'Male', bloodGroup: 'B+', phone: '0753519186', address: '374/E/01 Udupila, Delgoda', history: [] },
     { id: 'p4', name: 'Prameesha Shyanadi', age: 25, gender: 'Female', bloodGroup: 'B+', phone: '0756472537', address: '376/B/02 Gampaha, Weliweriya', history: [] },
   ],
-  appointments: [],
+  appointments: [
+    { id: 'a1', patientId: 'p1', doctorId: '1', date: '2024-04-26', time: '09:00', status: 'Scheduled', notes: 'Routine checkup' },
+    { id: 'a2', patientId: 'p2', doctorId: '2', date: '2024-04-26', time: '10:30', status: 'Scheduled', notes: 'Follow-up on previous treatment' },
+    { id: 'a3', patientId: 'p3', doctorId: '1', date: '2024-04-27', time: '14:00', status: 'Scheduled', notes: 'Consultation' },
+    { id: 'a4', patientId: 'p4', doctorId: '2', date: '2024-04-28', time: '11:00', status: 'Scheduled', notes: 'First visit' },
+  ],
   inventory: [
     { id: 'i1', name: 'Paracetamol', category: 'Medicine', quantity: 500, minQuantity: 50, unit: 'Tablets', price: 0.5, expiryDate: '2025-12-01' },
     { id: 'i2', name: 'Amoxicillin', category: 'Medicine', quantity: 200, minQuantity: 20, unit: 'Capsules', price: 1.2, expiryDate: '2024-06-15' },
@@ -106,9 +111,17 @@ export function useHospitalData() {
       data.invoices = INITIAL_STATE.invoices;
     }
 
-    // Migration: Update names to Kamal Perera / Nimal Udayanga / Sadeepa Shyamal
-    // This handles the case where the user has existing data in localStorage with old names
-    if (data.patients) {
+    // Migration: Populate initial patients if none exist or are missing core ones
+    if (!data.patients) {
+      data.patients = INITIAL_STATE.patients;
+    } else {
+      // Ensure all core patients exist
+      INITIAL_STATE.patients.forEach(initialPatient => {
+        if (!data.patients.find((p: Patient) => p.id === initialPatient.id || p.name === initialPatient.name)) {
+          data.patients.push(initialPatient);
+        }
+      });
+
       data.patients = data.patients.map((p: Patient) => {
         if (p.name.toLowerCase() === 'kamal perera' || p.name === 'John Doe') {
           return { ...p, name: 'Kamal Perera', phone: '0713423457', address: '123, Galle Road, Colombo 03' };
@@ -124,17 +137,28 @@ export function useHospitalData() {
         }
         return p;
       });
+    }
 
-      // Ensure all core patients exist if they were missing for some reason
-      INITIAL_STATE.patients.forEach(initialPatient => {
-        if (!data.patients.find((p: Patient) => p.name === initialPatient.name)) {
-          data.patients.push(initialPatient);
+    // Migration: Update names in appointments if they use patientId
+    if (!data.appointments || data.appointments.length === 0) {
+      data.appointments = INITIAL_STATE.appointments;
+    } else {
+      // Ensure specific sample appointments exist
+      INITIAL_STATE.appointments.forEach(initialAppt => {
+        if (!data.appointments.find((a: Appointment) => a.id === initialAppt.id)) {
+          data.appointments.push(initialAppt);
         }
       });
     }
     
     if (data.doctors) {
       data.doctors = data.doctors.map((d: Doctor) => {
+        if (d.name === 'Dr. Sarah Wilson') {
+          return { ...d, email: 'sarah@gmail.com', phone: '0715559856' };
+        }
+        if (d.name === 'Dr. James Miller') {
+          return { ...d, email: 'james@gmail.com', phone: '0705556745' };
+        }
         if (d.reviews) {
           const updatedReviews = d.reviews.map(r => {
             if (r.patientName.toLowerCase() === 'kamal perera' || r.patientName === 'John Doe') {
