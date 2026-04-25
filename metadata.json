@@ -1,0 +1,6 @@
+{
+  "name": "MediFlow HMS",
+  "description": "A comprehensive Hospital Management System with modules for patient care, scheduling, inventory, and billing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
