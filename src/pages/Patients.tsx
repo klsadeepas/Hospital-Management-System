@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X, Pill, History as HistoryIcon } from 'lucide-react';
+import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X, Pill, History as HistoryIcon, FlaskConical, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { generateId, cn } from '../lib/utils';
@@ -19,18 +19,30 @@ import {
 } from 'date-fns';
 
 export default function Patients() {
-  const { patients, addPatient, updatePatient, doctors, appointments, inventory, addPrescription } = useHospitalData();
+  const { patients, addPatient, updatePatient, doctors, appointments, inventory, addPrescription, addLabReport } = useHospitalData();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'history' | 'prescriptions'>('history');
+  const [activeTab, setActiveTab] = useState<'history' | 'prescriptions' | 'labs'>('history');
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+  const [showLabForm, setShowLabForm] = useState(false);
+  
   const [prescriptionFormData, setPrescriptionFormData] = useState({
     medicationId: '',
     dosage: '',
     frequency: '',
     duration: '',
+    notes: ''
+  });
+
+  const [labFormData, setLabFormData] = useState({
+    testName: '',
+    result: '',
+    unit: '',
+    range: '',
+    status: 'Normal' as const,
+    doctorId: '',
     notes: ''
   });
 
@@ -109,6 +121,30 @@ export default function Patients() {
     addPrescription(newPrescription);
     setShowPrescriptionForm(false);
     setPrescriptionFormData({ medicationId: '', dosage: '', frequency: '', duration: '', notes: '' });
+  };
+
+  const handleAddLabReport = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    const newReport = {
+      id: generateId(),
+      patientId: selectedPatient.id,
+      date: new Date().toISOString().split('T')[0],
+      ...labFormData
+    };
+
+    addLabReport(newReport as any);
+    setShowLabForm(false);
+    setLabFormData({
+      testName: '',
+      result: '',
+      unit: '',
+      range: '',
+      status: 'Normal',
+      doctorId: '',
+      notes: ''
+    });
   };
 
   if (selectedPatient) {
@@ -264,6 +300,15 @@ export default function Patients() {
                 >
                   <Pill className="w-6 h-6" /> Prescriptions
                 </button>
+                <button 
+                  onClick={() => setActiveTab('labs')}
+                  className={cn(
+                    "text-xl font-bold flex items-center gap-2 pb-2 border-b-2 transition-all",
+                    activeTab === 'labs' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent"
+                  )}
+                >
+                  <FlaskConical className="w-6 h-6" /> Lab Results
+                </button>
               </div>
               
               {activeTab === 'history' && (
@@ -295,127 +340,136 @@ export default function Patients() {
                   <Plus className="w-4 h-4" /> New Prescription
                 </button>
               )}
+
+              {activeTab === 'labs' && (
+                <button 
+                  onClick={() => setShowLabForm(true)}
+                  className="btn-primary flex items-center gap-2 h-10 px-4"
+                >
+                  <Plus className="w-4 h-4" /> Record Test Result
+                </button>
+              )}
             </div>
 
             {activeTab === 'history' ? (
               <>
                 {historyView === 'list' ? (
-              <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100">
-                {selectedPatient.history.length === 0 ? (
-                  <div className="text-center py-20 text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    No medical records found for this patient.
+                  <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100">
+                    {selectedPatient.history.length === 0 ? (
+                      <div className="text-center py-20 text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                        No medical records found for this patient.
+                      </div>
+                    ) : (
+                      selectedPatient.history.map((note) => (
+                        <div key={note.id} className="relative pl-8">
+                          <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
+                          <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-blue-100 transition-all group">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                  <CalendarIcon className="w-3 h-3" />
+                                  {note.date}
+                                </p>
+                                <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{note.diagnosis}</h4>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Physician</p>
+                                <p className="text-sm font-semibold text-slate-700">
+                                  {doctors.find(d => d.id === note.doctorId)?.name || 'Unknown'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Treatment Plan</p>
+                              <p className="text-sm text-slate-700 leading-relaxed italic">"{note.treatment}"</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 ) : (
-                  selectedPatient.history.map((note) => (
-                    <div key={note.id} className="relative pl-8">
-                      <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-blue-500 shadow-sm z-10" />
-                      <div className="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-blue-100 transition-all group">
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <h4 className="font-bold text-slate-700">{format(historyMonth, 'MMMM yyyy')}</h4>
+                      <div className="flex gap-2">
+                        <button onClick={() => setHistoryMonth(subMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setHistoryMonth(addMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-7 border-t border-l border-slate-100 rounded-xl overflow-hidden">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="py-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-r border-b border-slate-100">{day}</div>
+                      ))}
+                      {(() => {
+                        const monthStart = startOfMonth(historyMonth);
+                        const monthEnd = endOfMonth(monthStart);
+                        const startDate = startOfWeek(monthStart);
+                        const endDate = endOfWeek(monthEnd);
+                        const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+                        return calendarDays.map((day, idx) => {
+                          const dayNotes = selectedPatient.history.filter(note => isSameDay(parseISO(note.date), day));
+                          return (
+                            <div 
+                              key={idx} 
+                              className={cn(
+                                "min-h-[100px] p-2 border-r border-b border-slate-100 transition-all",
+                                !isSameMonth(day, monthStart) ? "bg-slate-50/30 opacity-20" : "bg-white"
+                              )}
+                            >
+                              <p className={cn(
+                                "text-[10px] font-bold mb-1 w-5 h-5 flex items-center justify-center rounded-md",
+                                isSameDay(day, new Date()) ? "bg-blue-600 text-white" : "text-slate-400"
+                              )}>
+                                {format(day, 'd')}
+                              </p>
+                              <div className="space-y-1">
+                                {dayNotes.map(note => (
+                                  <button
+                                    key={note.id}
+                                    onClick={() => setSelectedNote(note)}
+                                    className="w-full text-left p-1.5 rounded-lg bg-blue-50 text-[9px] font-bold text-blue-700 border border-blue-100 truncate hover:bg-blue-100 transition-colors"
+                                  >
+                                    {note.diagnosis}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {selectedNote && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-6 rounded-2xl bg-white border border-blue-100 shadow-sm"
+                      >
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                              <CalendarIcon className="w-3 h-3" />
-                              {note.date}
-                            </p>
-                            <h4 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{note.diagnosis}</h4>
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">{selectedNote.date}</p>
+                            <h4 className="text-lg font-bold text-slate-900">{selectedNote.diagnosis}</h4>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Physician</p>
-                            <p className="text-sm font-semibold text-slate-700">
-                              {doctors.find(d => d.id === note.doctorId)?.name || 'Unknown'}
-                            </p>
-                          </div>
+                          <button onClick={() => setSelectedNote(null)} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
                         </div>
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Treatment Plan</p>
-                          <p className="text-sm text-slate-700 leading-relaxed italic">"{note.treatment}"</p>
+                        <div className="bg-slate-50 p-4 rounded-xl">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Physician: {doctors.find(d => d.id === selectedNote.doctorId)?.name}</p>
+                          <p className="text-sm text-slate-700 italic">"{selectedNote.treatment}"</p>
                         </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <h4 className="font-bold text-slate-700">{format(historyMonth, 'MMMM yyyy')}</h4>
-                  <div className="flex gap-2">
-                    <button onClick={() => setHistoryMonth(subMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setHistoryMonth(addMonths(historyMonth, 1))} className="p-2 hover:bg-white rounded-lg text-slate-500 transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                      </motion.div>
+                    )}
                   </div>
-                </div>
-
-                <div className="grid grid-cols-7 border-t border-l border-slate-100 rounded-xl overflow-hidden">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="py-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-r border-b border-slate-100">{day}</div>
-                  ))}
-                  {(() => {
-                    const monthStart = startOfMonth(historyMonth);
-                    const monthEnd = endOfMonth(monthStart);
-                    const startDate = startOfWeek(monthStart);
-                    const endDate = endOfWeek(monthEnd);
-                    const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
-
-                    return calendarDays.map((day, idx) => {
-                      const dayNotes = selectedPatient.history.filter(note => isSameDay(parseISO(note.date), day));
-                      return (
-                        <div 
-                          key={idx} 
-                          className={cn(
-                            "min-h-[100px] p-2 border-r border-b border-slate-100 transition-all",
-                            !isSameMonth(day, monthStart) ? "bg-slate-50/30 opacity-20" : "bg-white"
-                          )}
-                        >
-                          <p className={cn(
-                            "text-[10px] font-bold mb-1 w-5 h-5 flex items-center justify-center rounded-md",
-                            isSameDay(day, new Date()) ? "bg-blue-600 text-white" : "text-slate-400"
-                          )}>
-                            {format(day, 'd')}
-                          </p>
-                          <div className="space-y-1">
-                            {dayNotes.map(note => (
-                              <button
-                                key={note.id}
-                                onClick={() => setSelectedNote(note)}
-                                className="w-full text-left p-1.5 rounded-lg bg-blue-50 text-[9px] font-bold text-blue-700 border border-blue-100 truncate hover:bg-blue-100 transition-colors"
-                              >
-                                {note.diagnosis}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-
-                {selectedNote && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-6 rounded-2xl bg-white border border-blue-100 shadow-sm"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">{selectedNote.date}</p>
-                        <h4 className="text-lg font-bold text-slate-900">{selectedNote.diagnosis}</h4>
-                      </div>
-                      <button onClick={() => setSelectedNote(null)} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
-                    </div>
-                    <div className="bg-slate-50 p-4 rounded-xl">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Physician: {doctors.find(d => d.id === selectedNote.doctorId)?.name}</p>
-                      <p className="text-sm text-slate-700 italic">"{selectedNote.treatment}"</p>
-                    </div>
-                  </motion.div>
                 )}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="space-y-6">
+              </>
+            ) : activeTab === 'prescriptions' ? (
+              <div className="space-y-6">
                 {!selectedPatient.prescriptions || selectedPatient.prescriptions.length === 0 ? (
                   <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
                     <HistoryIcon className="w-12 h-12 text-slate-200 mx-auto mb-4" />
@@ -451,6 +505,71 @@ export default function Patients() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {!selectedPatient.labReports || selectedPatient.labReports.length === 0 ? (
+                  <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                    <FlaskConical className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium tracking-tight">No lab reports found for this patient.</p>
+                    <button 
+                      onClick={() => setShowLabForm(true)}
+                      className="mt-4 text-blue-600 font-bold text-sm hover:underline"
+                    >
+                      Record first test result
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-100">
+                          <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Test Name</th>
+                          <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                          <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Result</th>
+                          <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Range</th>
+                          <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                          <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Physician</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {selectedPatient.labReports.map((report) => (
+                          <tr key={report.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-100 transition-colors">
+                                  <FileText className="w-4 h-4" />
+                                </div>
+                                <span className="font-bold text-slate-900">{report.testName}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-slate-500 font-mono">{report.date}</td>
+                            <td className="px-4 py-4">
+                              <span className="font-bold text-slate-900">{report.result}</span>
+                              <span className="ml-1 text-xs text-slate-400">{report.unit}</span>
+                            </td>
+                            <td className="px-4 py-4 text-xs text-slate-500 font-mono">{report.range}</td>
+                            <td className="px-4 py-4">
+                              <span className={cn(
+                                "status-badge",
+                                report.status === 'Normal' ? "bg-emerald-100 text-emerald-700" :
+                                report.status === 'Abnormal' ? "bg-amber-100 text-amber-700" :
+                                report.status === 'Critical' ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700"
+                              )}>
+                                {report.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <p className="text-xs font-bold text-slate-700">
+                                {doctors.find(d => d.id === report.doctorId)?.name || 'Dr. System'}
+                              </p>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -548,6 +667,127 @@ export default function Patients() {
                   <div className="flex gap-4 pt-6 border-t border-slate-100">
                     <button type="button" onClick={() => setShowPrescriptionForm(false)} className="btn-secondary flex-1 h-12">Cancel</button>
                     <button type="submit" className="btn-primary flex-1 justify-center h-12">Complete Prescription</button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Lab Report Form Modal */}
+        <AnimatePresence>
+          {showLabForm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowLabForm(false)}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl font-bold tracking-tight">Record Lab Result</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Diagnostic Data Entry</p>
+                  </div>
+                  <button onClick={() => setShowLabForm(false)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 font-bold h-10 w-10">✕</button>
+                </div>
+
+                <form onSubmit={handleAddLabReport} className="space-y-4">
+                  <div>
+                    <label className="label-text">Test Name</label>
+                    <input 
+                      required 
+                      placeholder="e.g. Hemoglobin A1c" 
+                      className="input-field h-12" 
+                      value={labFormData.testName}
+                      onChange={e => setLabFormData({ ...labFormData, testName: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-text">Result Value</label>
+                      <input 
+                        required 
+                        placeholder="e.g. 5.7" 
+                        className="input-field h-12 font-bold" 
+                        value={labFormData.result}
+                        onChange={e => setLabFormData({ ...labFormData, result: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label-text">Unit</label>
+                      <input 
+                        required 
+                        placeholder="e.g. %" 
+                        className="input-field h-12" 
+                        value={labFormData.unit}
+                        onChange={e => setLabFormData({ ...labFormData, unit: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-text">Normal Range</label>
+                      <input 
+                        placeholder="e.g. 4.0 - 5.6" 
+                        className="input-field h-12 font-mono text-xs" 
+                        value={labFormData.range}
+                        onChange={e => setLabFormData({ ...labFormData, range: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label-text">Status</label>
+                      <select 
+                        required 
+                        className="input-field h-12"
+                        value={labFormData.status}
+                        onChange={e => setLabFormData({ ...labFormData, status: e.target.value as any })}
+                      >
+                        <option value="Normal">Normal</option>
+                        <option value="Abnormal">Abnormal</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label-text">Ordering Physician</label>
+                    <select 
+                      required 
+                      className="input-field h-12"
+                      value={labFormData.doctorId}
+                      onChange={e => setLabFormData({ ...labFormData, doctorId: e.target.value })}
+                    >
+                      <option value="">Select Doctor...</option>
+                      {doctors.map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="label-text">Internal Notes (Optional)</label>
+                    <textarea 
+                      className="input-field min-h-[80px]" 
+                      placeholder="Verified by Lab Supervisor..." 
+                      value={labFormData.notes}
+                      onChange={e => setLabFormData({ ...labFormData, notes: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-6 border-t border-slate-100">
+                    <button type="button" onClick={() => setShowLabForm(false)} className="btn-secondary flex-1 h-12">Cancel</button>
+                    <button type="submit" className="btn-primary flex-1 justify-center h-12">Save Result</button>
                   </div>
                 </form>
               </motion.div>

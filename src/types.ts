@@ -8,6 +8,19 @@ export interface Review {
   date: string;
 }
 
+export interface LabReport {
+  id: string;
+  patientId: string;
+  testName: string;
+  date: string;
+  result: string;
+  unit: string;
+  range: string;
+  status: 'Normal' | 'Abnormal' | 'Critical' | 'Pending';
+  doctorId: string;
+  notes?: string;
+}
+
 export interface Doctor {
   id: string;
   name: string;
@@ -41,6 +54,7 @@ export interface Patient {
   address: string;
   history: MedicalNote[];
   prescriptions?: Prescription[];
+  labReports?: LabReport[];
 }
 
 export interface MedicalNote {
@@ -87,4 +101,5 @@ export interface HospitalState {
   appointments: Appointment[];
   inventory: InventoryItem[];
   invoices: Invoice[];
+  labReports: LabReport[];
 }
