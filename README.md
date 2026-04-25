@@ -1,13 +1,14 @@
 # Hospital-Management-System
-A modern Hospital Management System built with React, focusing on an intuitive and responsive frontend interface. This project provides user-friendly dashboards for managing patients, appointments, doctors, and hospital resources. 
+A modern Hospital Management System built with React, focusing on an intuitive and responsive frontend interface. 
+This project provides user-friendly dashboards for managing patients, appointments, doctors, and hospital resources. 
 
-It emphasizes clean UI/UX design, efficient state management, and seamless data handling through API integration. Ideal for demonstrating frontend development skills in building scalable and interactive healthcare applications.
+It emphasizes clean UI/UX design, efficient state management, and seamless data handling through API integration. 
+Ideal for demonstrating frontend development skills in building scalable and interactive healthcare applications.
 
 # How can I run this code?
 The only requirement is having Node.js & npm installed
 
 # What technologies are used for this project?
-This project is built with:
 - React
 - Vite
 - TypeScript
@@ -42,7 +43,6 @@ This project is built with:
 ## Image 7
 
 ![image alt](https://github.com/klsadeepas/Hospital-Management-System/blob/0bc0aca8d8ac3687cc9dc4355a3c8d6aee1f2b1d/images/11.png)
-
 
 ## Image 8
 
