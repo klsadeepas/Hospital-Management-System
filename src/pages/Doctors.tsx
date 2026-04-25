@@ -263,8 +263,16 @@ export default function Doctors() {
               transition={{ duration: 0.2 }}
             className="bento-card overflow-hidden flex flex-col sm:flex-row p-0"
           >
-            <div className="bg-slate-100 w-full sm:w-48 h-48 sm:h-auto flex items-center justify-center relative">
-              <Users className="w-16 h-16 text-slate-300" />
+            <div className="bg-slate-100 w-full sm:w-48 h-48 sm:h-auto flex items-center justify-center relative overflow-hidden">
+              {doctor.image ? (
+                <img 
+                  src={doctor.image} 
+                  alt={doctor.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Users className="w-16 h-16 text-slate-300" />
+              )}
               <div className="absolute top-4 left-4">
                 <span className="px-2 py-1 bg-white/90 backdrop-blur shadow-sm rounded text-[10px] font-bold text-blue-600 uppercase tracking-widest border border-blue-100">
                   {doctor.specialization}
@@ -405,8 +413,16 @@ export default function Doctors() {
                 {detailTab === 'profile' && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                        <User className="w-6 h-6 text-slate-400" />
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+                        {selectedDoctor.image ? (
+                          <img 
+                            src={selectedDoctor.image} 
+                            alt={selectedDoctor.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-6 h-6 text-slate-400" />
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-900">{selectedDoctor.name}</p>

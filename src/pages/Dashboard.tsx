@@ -186,10 +186,18 @@ export default function Dashboard() {
           {data.doctors.slice(0, 3).map((doctor, idx) => (
             <div key={doctor.id} className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-bold", 
-                  idx === 0 ? "bg-indigo-100 text-indigo-600" : idx === 1 ? "bg-pink-100 text-pink-600" : "bg-cyan-100 text-cyan-600"
+                <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-bold overflow-hidden shadow-sm", 
+                  !doctor.image && (idx === 0 ? "bg-indigo-100 text-indigo-600" : idx === 1 ? "bg-pink-100 text-pink-600" : "bg-cyan-100 text-cyan-600")
                 )}>
-                  {doctor.name.split(' ').pop()?.substring(0, 2).toUpperCase()}
+                  {doctor.image ? (
+                    <img 
+                      src={doctor.image} 
+                      alt={doctor.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    doctor.name.split(' ').pop()?.substring(0, 2).toUpperCase()
+                  )}
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900">{doctor.name}</p>

@@ -30,6 +30,7 @@ export interface Doctor {
   availability: string[]; // ['Monday', 'Tuesday'...]
   room: string;
   reviews?: Review[];
+  image?: string;
 }
 
 export interface Prescription {
