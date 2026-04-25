@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X, Pill, History as HistoryIcon, FlaskConical, FileText } from 'lucide-react';
+import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X, Pill, History as HistoryIcon, FlaskConical, FileText, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { generateId, cn } from '../lib/utils';
@@ -24,10 +24,13 @@ export default function Patients() {
   const [showModal, setShowModal] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'history' | 'prescriptions' | 'labs'>('history');
+  const [activeTab, setActiveTab] = useState<'history' | 'prescriptions' | 'labs' | 'invoices'>('history');
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
   const [showLabForm, setShowLabForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  const { invoices } = useHospitalData();
+  const patientInvoices = invoices.filter(inv => inv.patientId === selectedPatientId);
   
   const [prescriptionFormData, setPrescriptionFormData] = useState({
     medicationId: '',
@@ -353,6 +356,15 @@ export default function Patients() {
                 >
                   <FlaskConical className="w-6 h-6" /> Lab Results
                 </button>
+                <button 
+                  onClick={() => setActiveTab('invoices')}
+                  className={cn(
+                    "text-xl font-bold flex items-center gap-2 pb-2 border-b-2 transition-all",
+                    activeTab === 'invoices' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent"
+                  )}
+                >
+                  <CreditCard className="w-6 h-6" /> Invoices
+                </button>
               </div>
               
               {activeTab === 'history' && (
@@ -552,7 +564,7 @@ export default function Patients() {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === 'labs' ? (
               <div className="space-y-6">
                 {!selectedPatient.labReports || selectedPatient.labReports.length === 0 ? (
                   <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
@@ -614,6 +626,42 @@ export default function Patients() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {patientInvoices.length === 0 ? (
+                  <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                    <CreditCard className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium tracking-tight">No billing history found for this patient.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {patientInvoices.map((inv) => (
+                      <div key={inv.id} className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center",
+                            inv.status === 'Paid' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
+                          )}>
+                            <CreditCard className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{inv.id} • {inv.date}</p>
+                            <h4 className="font-bold text-slate-900">
+                              {inv.items.length} item{inv.items.length !== 1 ? 's' : ''} • Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(inv.total)}
+                            </h4>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-bold",
+                          inv.status === 'Paid' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {inv.status}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

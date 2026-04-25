@@ -12,8 +12,8 @@ const INITIAL_STATE: HospitalState = {
       availability: ['Monday', 'Wednesday', 'Friday'], 
       room: 'A-101',
       reviews: [
-        { id: 'r1', patientName: 'Kamal perera', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
-        { id: 'r2', patientName: 'Nimal udayanga', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
+        { id: 'r1', patientName: 'Kamal Perera', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
+        { id: 'r2', patientName: 'Nimal Udayanga', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
       ]
     },
     { 
@@ -30,8 +30,10 @@ const INITIAL_STATE: HospitalState = {
     },
   ],
   patients: [
-    { id: 'p1', name: 'Kamal perera', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '555-1234', address: '123 Pine St', history: [] },
-    { id: 'p2', name: 'Nimal udayanga', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '555-5678', address: '456 Oak Ave', history: [] },
+    { id: 'p1', name: 'Kamal Perera', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '0713423457', address: '123, Galle Road, Colombo 03', history: [] },
+    { id: 'p2', name: 'Nimal Udayanga', age: 32, gender: 'Female', bloodGroup: 'A-', phone: '0753519111', address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250', history: [] },
+    { id: 'p3', name: 'Sadeepa Shyamal', age: 28, gender: 'Male', bloodGroup: 'B+', phone: '0753519186', address: '374/E/01 Udupila, Delgoda', history: [] },
+    { id: 'p4', name: 'Prameesha Shyanadi', age: 25, gender: 'Female', bloodGroup: 'B+', phone: '0756472537', address: '376/B/02 Gampaha, Weliweriya', history: [] },
   ],
   appointments: [],
   inventory: [
@@ -40,7 +42,53 @@ const INITIAL_STATE: HospitalState = {
     { id: 'i3', name: 'Surgical Masks', category: 'Supplies', quantity: 1000, minQuantity: 100, unit: 'Box of 50', price: 15.0 },
     { id: 'i4', name: 'Insulin', category: 'Medicine', quantity: 15, minQuantity: 20, unit: 'Vials', price: 45.0, expiryDate: '2024-05-30' },
   ],
-  invoices: [],
+  invoices: [
+    {
+      id: 'inv-101',
+      patientId: 'p1',
+      date: '2024-04-10',
+      items: [
+        { description: 'General Consultation', amount: 50 },
+        { description: 'Blood Test', amount: 35 },
+        { description: 'ECG', amount: 45 }
+      ],
+      total: 130,
+      status: 'Paid'
+    },
+    {
+      id: 'inv-102',
+      patientId: 'p2',
+      date: '2024-04-15',
+      items: [
+        { description: 'Neurology Consultation', amount: 75 },
+        { description: 'MRI Scan', amount: 450 }
+      ],
+      total: 525,
+      status: 'Paid'
+    },
+    {
+      id: 'inv-103',
+      patientId: 'p1',
+      date: '2024-04-20',
+      items: [
+        { description: 'Follow-up Cardiology', amount: 40 },
+        { description: 'Medication - Paracetamol', amount: 15 }
+      ],
+      total: 55,
+      status: 'Unpaid'
+    },
+    {
+      id: 'inv-104',
+      patientId: 'p2',
+      date: '2024-04-22',
+      items: [
+        { description: 'Emergency Consultation', amount: 100 },
+        { description: 'X-Ray', amount: 60 }
+      ],
+      total: 160,
+      status: 'Paid'
+    }
+  ],
   labReports: [],
 };
 
@@ -53,21 +101,35 @@ export function useHospitalData() {
     
     let data = JSON.parse(saved);
     
-    // Migration: Update names from John Doe / Jane Smith to Kamal perera / Nimal udayanga
-    // This handles the case where the user has existing data in localStorage
-    let migrated = false;
-    
+    // Migration: Populate initial invoices if none exist
+    if (!data.invoices || data.invoices.length === 0) {
+      data.invoices = INITIAL_STATE.invoices;
+    }
+
+    // Migration: Update names to Kamal Perera / Nimal Udayanga / Sadeepa Shyamal
+    // This handles the case where the user has existing data in localStorage with old names
     if (data.patients) {
       data.patients = data.patients.map((p: Patient) => {
-        if (p.name === 'John Doe') {
-          migrated = true;
-          return { ...p, name: 'Kamal perera' };
+        if (p.name.toLowerCase() === 'kamal perera' || p.name === 'John Doe') {
+          return { ...p, name: 'Kamal Perera', phone: '0713423457', address: '123, Galle Road, Colombo 03' };
         }
-        if (p.name === 'Jane Smith') {
-          migrated = true;
-          return { ...p, name: 'Nimal udayanga' };
+        if (p.name.toLowerCase() === 'nimal udayanga' || p.name === 'Jane Smith') {
+          return { ...p, name: 'Nimal Udayanga', phone: '0753519111', address: 'No. 42, Lake View Road, Nugegoda, Colombo 10250' };
+        }
+        if (p.name.toLowerCase() === 'sadeepa shyamal') {
+          return { ...p, name: 'Sadeepa Shyamal', phone: '0753519186', address: '374/E/01 Udupila, Delgoda' };
+        }
+        if (p.name.toLowerCase() === 'prameesha shyanadi') {
+          return { ...p, name: 'Prameesha Shyanadi', phone: '0756472537', address: '376/B/02 Gampaha, Weliweriya' };
         }
         return p;
+      });
+
+      // Ensure all core patients exist if they were missing for some reason
+      INITIAL_STATE.patients.forEach(initialPatient => {
+        if (!data.patients.find((p: Patient) => p.name === initialPatient.name)) {
+          data.patients.push(initialPatient);
+        }
       });
     }
     
@@ -75,13 +137,17 @@ export function useHospitalData() {
       data.doctors = data.doctors.map((d: Doctor) => {
         if (d.reviews) {
           const updatedReviews = d.reviews.map(r => {
-            if (r.patientName === 'John Doe') {
-              migrated = true;
-              return { ...r, patientName: 'Kamal perera' };
+            if (r.patientName.toLowerCase() === 'kamal perera' || r.patientName === 'John Doe') {
+              return { ...r, patientName: 'Kamal Perera' };
             }
-            if (r.patientName === 'Jane Smith') {
-              migrated = true;
-              return { ...r, patientName: 'Nimal udayanga' };
+            if (r.patientName.toLowerCase() === 'nimal udayanga' || r.patientName === 'Jane Smith') {
+              return { ...r, patientName: 'Nimal Udayanga' };
+            }
+            if (r.patientName.toLowerCase() === 'sadeepa shyamal') {
+              return { ...r, patientName: 'Sadeepa Shyamal' };
+            }
+            if (r.patientName.toLowerCase() === 'prameesha shyanadi') {
+              return { ...r, patientName: 'Prameesha Shyanadi' };
             }
             return r;
           });
