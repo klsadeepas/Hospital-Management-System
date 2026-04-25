@@ -1,10 +1,33 @@
 import { useState, useEffect } from 'react';
-import { HospitalState, Doctor, Patient, Appointment, InventoryItem, Invoice } from '../types';
+import { HospitalState, Doctor, Patient, Appointment, InventoryItem, Invoice, Prescription } from '../types';
 
 const INITIAL_STATE: HospitalState = {
   doctors: [
-    { id: '1', name: 'Dr. Sarah Wilson', specialization: 'Cardiology', email: 'sarah@mediflow.com', phone: '555-0101', availability: ['Monday', 'Wednesday', 'Friday'], room: 'A-101' },
-    { id: '2', name: 'Dr. James Miller', specialization: 'Neurology', email: 'james@mediflow.com', phone: '555-0102', availability: ['Tuesday', 'Thursday'], room: 'B-202' },
+    { 
+      id: '1', 
+      name: 'Dr. Sarah Wilson', 
+      specialization: 'Cardiology', 
+      email: 'sarah@mediflow.com', 
+      phone: '555-0101', 
+      availability: ['Monday', 'Wednesday', 'Friday'], 
+      room: 'A-101',
+      reviews: [
+        { id: 'r1', patientName: 'John Doe', rating: 5, comment: 'Excellent care and very professional.', date: '2024-03-15' },
+        { id: 'r2', patientName: 'Jane Smith', rating: 4, comment: 'Wait time was a bit long, but the doctor was great.', date: '2024-03-10' }
+      ]
+    },
+    { 
+      id: '2', 
+      name: 'Dr. James Miller', 
+      specialization: 'Neurology', 
+      email: 'james@mediflow.com', 
+      phone: '555-0102', 
+      availability: ['Tuesday', 'Thursday'], 
+      room: 'B-202',
+      reviews: [
+        { id: 'r3', patientName: 'Michael Corleone', rating: 5, comment: 'Very thorough explanation of my condition.', date: '2024-03-20' }
+      ]
+    },
   ],
   patients: [
     { id: 'p1', name: 'John Doe', age: 45, gender: 'Male', bloodGroup: 'O+', phone: '555-1234', address: '123 Pine St', history: [] },
@@ -12,9 +35,10 @@ const INITIAL_STATE: HospitalState = {
   ],
   appointments: [],
   inventory: [
-    { id: 'i1', name: 'Paracetamol', category: 'Medicine', quantity: 500, minQuantity: 50, unit: 'Tablets', price: 0.5 },
-    { id: 'i2', name: 'Amoxicillin', category: 'Medicine', quantity: 200, minQuantity: 20, unit: 'Capsules', price: 1.2 },
+    { id: 'i1', name: 'Paracetamol', category: 'Medicine', quantity: 500, minQuantity: 50, unit: 'Tablets', price: 0.5, expiryDate: '2025-12-01' },
+    { id: 'i2', name: 'Amoxicillin', category: 'Medicine', quantity: 200, minQuantity: 20, unit: 'Capsules', price: 1.2, expiryDate: '2024-06-15' },
     { id: 'i3', name: 'Surgical Masks', category: 'Supplies', quantity: 1000, minQuantity: 100, unit: 'Box of 50', price: 15.0 },
+    { id: 'i4', name: 'Insulin', category: 'Medicine', quantity: 15, minQuantity: 20, unit: 'Vials', price: 45.0, expiryDate: '2024-05-30' },
   ],
   invoices: [],
 };
@@ -38,6 +62,13 @@ export function useHospitalData() {
 
   const addDoctor = (doctor: Doctor) => {
     setState(prev => ({ ...prev, doctors: [...prev.doctors, doctor] }));
+  };
+
+  const updateDoctor = (doctor: Doctor) => {
+    setState(prev => ({
+      ...prev,
+      doctors: prev.doctors.map(d => d.id === doctor.id ? doctor : d)
+    }));
   };
 
   const updatePatient = (patient: Patient) => {
@@ -88,15 +119,42 @@ export function useHospitalData() {
     setState(prev => ({...prev, invoices: [...prev.invoices, invoice]}));
   };
 
+  const addPrescription = (prescription: Prescription) => {
+    setState(prev => {
+      const patient = prev.patients.find(p => p.id === prescription.patientId);
+      if (!patient) return prev;
+
+      const updatedPatient = {
+        ...patient,
+        prescriptions: [...(patient.prescriptions || []), prescription]
+      };
+
+      const updatedInventory = prev.inventory.map(item => {
+        if (item.id === prescription.medicationId) {
+          return { ...item, quantity: Math.max(0, item.quantity - 1) };
+        }
+        return item;
+      });
+
+      return {
+        ...prev,
+        patients: prev.patients.map(p => p.id === patient.id ? updatedPatient : p),
+        inventory: updatedInventory
+      };
+    });
+  };
+
   return {
     ...state,
     addPatient,
     addDoctor,
+    updateDoctor,
     updatePatient,
     addAppointment,
     updateAppointment,
     updateAppointmentStatus,
     updateInventory,
     addInvoice,
+    addPrescription,
   };
 }

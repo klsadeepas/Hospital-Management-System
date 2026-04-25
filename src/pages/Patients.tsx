@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X } from 'lucide-react';
+import { Plus, Search, Filter, Phone, MapPin, User, ChevronRight, ArrowLeft, Clipboard, Stethoscope, Calendar as CalendarIcon, AlertCircle, Activity, LayoutList, CalendarDays, ChevronLeft, X, Pill, History as HistoryIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useHospitalData } from '../hooks/useHospitalData';
 import { generateId, cn } from '../lib/utils';
-import { Patient, MedicalNote } from '../types';
+import { Patient, MedicalNote, Prescription } from '../types';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -19,10 +19,20 @@ import {
 } from 'date-fns';
 
 export default function Patients() {
-  const { patients, addPatient, updatePatient, doctors, appointments } = useHospitalData();
+  const { patients, addPatient, updatePatient, doctors, appointments, inventory, addPrescription } = useHospitalData();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'history' | 'prescriptions'>('history');
+  const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+  const [prescriptionFormData, setPrescriptionFormData] = useState({
+    medicationId: '',
+    dosage: '',
+    frequency: '',
+    duration: '',
+    notes: ''
+  });
 
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
   const patientAppointments = appointments.filter(a => a.patientId === selectedPatientId);
@@ -82,6 +92,23 @@ export default function Patients() {
 
     updatePatient(updatedPatient);
     setHistoryFormData({ diagnosis: '', treatment: '', doctorId: '' });
+  };
+
+  const handlePrescribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    const newPrescription: Prescription = {
+      id: generateId(),
+      patientId: selectedPatient.id,
+      doctorId: historyFormData.doctorId || doctors[0]?.id || 'system',
+      date: new Date().toISOString().split('T')[0],
+      ...prescriptionFormData
+    };
+
+    addPrescription(newPrescription);
+    setShowPrescriptionForm(false);
+    setPrescriptionFormData({ medicationId: '', dosage: '', frequency: '', duration: '', notes: '' });
   };
 
   if (selectedPatient) {
@@ -218,31 +245,61 @@ export default function Patients() {
 
           <div className="col-span-12 lg:col-span-8 bento-card p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Stethoscope className="w-6 h-6 text-blue-600" />
-                Medical History
-              </h3>
-              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto">
+              <div className="flex gap-6">
                 <button 
-                  onClick={() => setHistoryView('list')}
-                  className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
-                    historyView === 'list' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  onClick={() => setActiveTab('history')}
+                  className={cn(
+                    "text-xl font-bold flex items-center gap-2 pb-2 border-b-2 transition-all",
+                    activeTab === 'history' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent"
                   )}
                 >
-                  <LayoutList className="w-4 h-4" /> List
+                  <Stethoscope className="w-6 h-6" /> Medical History
                 </button>
                 <button 
-                  onClick={() => setHistoryView('calendar')}
-                  className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
-                    historyView === 'calendar' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  onClick={() => setActiveTab('prescriptions')}
+                  className={cn(
+                    "text-xl font-bold flex items-center gap-2 pb-2 border-b-2 transition-all",
+                    activeTab === 'prescriptions' ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent"
                   )}
                 >
-                  <CalendarDays className="w-4 h-4" /> Calendar
+                  <Pill className="w-6 h-6" /> Prescriptions
                 </button>
               </div>
+              
+              {activeTab === 'history' && (
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto">
+                  <button 
+                    onClick={() => setHistoryView('list')}
+                    className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
+                      historyView === 'list' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    )}
+                  >
+                    <LayoutList className="w-4 h-4" /> List
+                  </button>
+                  <button 
+                    onClick={() => setHistoryView('calendar')}
+                    className={cn("flex-1 sm:flex-none px-4 py-2 rounded-lg flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all", 
+                      historyView === 'calendar' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                    )}
+                  >
+                    <CalendarDays className="w-4 h-4" /> Calendar
+                  </button>
+                </div>
+              )}
+
+              {activeTab === 'prescriptions' && (
+                <button 
+                  onClick={() => setShowPrescriptionForm(true)}
+                  className="btn-primary flex items-center gap-2 h-10 px-4"
+                >
+                  <Plus className="w-4 h-4" /> New Prescription
+                </button>
+              )}
             </div>
 
-            {historyView === 'list' ? (
+            {activeTab === 'history' ? (
+              <>
+                {historyView === 'list' ? (
               <div className="space-y-8 relative before:absolute before:left-[11px] before:top-4 before:bottom-0 before:w-0.5 before:bg-slate-100">
                 {selectedPatient.history.length === 0 ? (
                   <div className="text-center py-20 text-slate-400 italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
@@ -356,8 +413,147 @@ export default function Patients() {
                 )}
               </div>
             )}
+          </>
+        ) : (
+          <div className="space-y-6">
+                {!selectedPatient.prescriptions || selectedPatient.prescriptions.length === 0 ? (
+                  <div className="text-center py-20 bg-slate-50 border border-dashed border-slate-200 rounded-3xl">
+                    <HistoryIcon className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium tracking-tight">No prescriptions found for this patient.</p>
+                    <button 
+                      onClick={() => setShowPrescriptionForm(true)}
+                      className="mt-4 text-blue-600 font-bold text-sm hover:underline"
+                    >
+                      Issue first prescription
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedPatient.prescriptions.map((pres) => (
+                      <div key={pres.id} className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-blue-200 transition-all">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <Pill className="w-5 h-5" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{pres.date}</span>
+                        </div>
+                        <h4 className="font-bold text-slate-900 mb-1">
+                          {inventory.find(i => i.id === pres.medicationId)?.name || 'Unknown Medication'}
+                        </h4>
+                        <p className="text-xs text-slate-500 mb-4">{pres.dosage} • {pres.frequency} for {pres.duration}</p>
+                        <div className="pt-4 border-t border-slate-50 flex justify-between items-center">
+                          <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Prescribed By</p>
+                            <p className="text-xs font-bold text-slate-700">
+                              {doctors.find(d => d.id === pres.doctorId)?.name || 'Unknown Doctor'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Prescription Form Modal */}
+        <AnimatePresence>
+          {showPrescriptionForm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowPrescriptionForm(false)}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-lg"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl font-bold tracking-tight">New Prescription</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Issue Medication to Patient</p>
+                  </div>
+                  <button onClick={() => setShowPrescriptionForm(false)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 font-bold h-10 w-10">✕</button>
+                </div>
+
+                <form onSubmit={handlePrescribe} className="space-y-4">
+                  <div>
+                    <label className="label-text">Select Medication (Available Stock)</label>
+                    <select 
+                      required 
+                      className="input-field h-12"
+                      value={prescriptionFormData.medicationId}
+                      onChange={e => setPrescriptionFormData({ ...prescriptionFormData, medicationId: e.target.value })}
+                    >
+                      <option value="">Choose medication...</option>
+                      {inventory.filter(i => i.category === 'Medicine').map(item => (
+                        <option key={item.id} value={item.id} disabled={item.quantity <= 0}>
+                          {item.name} ({item.quantity} {item.unit} in stock)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="label-text">Dosage</label>
+                      <input 
+                        required 
+                        placeholder="e.g. 500mg" 
+                        className="input-field h-12" 
+                        value={prescriptionFormData.dosage}
+                        onChange={e => setPrescriptionFormData({ ...prescriptionFormData, dosage: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label-text">Frequency</label>
+                      <input 
+                        required 
+                        placeholder="e.g. Twice Daily" 
+                        className="input-field h-12" 
+                        value={prescriptionFormData.frequency}
+                        onChange={e => setPrescriptionFormData({ ...prescriptionFormData, frequency: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label-text">Duration</label>
+                    <input 
+                      required 
+                      placeholder="e.g. 7 Days" 
+                      className="input-field h-12" 
+                      value={prescriptionFormData.duration}
+                      onChange={e => setPrescriptionFormData({ ...prescriptionFormData, duration: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-text">Additional Notes (Optional)</label>
+                    <textarea 
+                      className="input-field min-h-[80px]" 
+                      placeholder="Take after meals..." 
+                      value={prescriptionFormData.notes}
+                      onChange={e => setPrescriptionFormData({ ...prescriptionFormData, notes: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-6 border-t border-slate-100">
+                    <button type="button" onClick={() => setShowPrescriptionForm(false)} className="btn-secondary flex-1 h-12">Cancel</button>
+                    <button type="submit" className="btn-primary flex-1 justify-center h-12">Complete Prescription</button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
