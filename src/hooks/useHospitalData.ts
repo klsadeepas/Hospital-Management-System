@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HospitalState, Doctor, Patient, Appointment, InventoryItem, Invoice, Prescription } from '../types';
+import { HospitalState, Doctor, Patient, Appointment, InventoryItem, Invoice, Prescription, LabReport } from '../types';
 
 const INITIAL_STATE: HospitalState = {
   doctors: [
@@ -41,6 +41,7 @@ const INITIAL_STATE: HospitalState = {
     { id: 'i4', name: 'Insulin', category: 'Medicine', quantity: 15, minQuantity: 20, unit: 'Vials', price: 45.0, expiryDate: '2024-05-30' },
   ],
   invoices: [],
+  labReports: [],
 };
 
 const STORAGE_KEY = 'mediflow_hms_data';
@@ -144,6 +145,24 @@ export function useHospitalData() {
     });
   };
 
+  const addLabReport = (report: LabReport) => {
+    setState(prev => {
+      const patient = prev.patients.find(p => p.id === report.patientId);
+      if (!patient) return prev;
+
+      const updatedPatient = {
+        ...patient,
+        labReports: [...(patient.labReports || []), report]
+      };
+
+      return {
+        ...prev,
+        patients: prev.patients.map(p => p.id === patient.id ? updatedPatient : p),
+        labReports: [...prev.labReports, report]
+      };
+    });
+  };
+
   return {
     ...state,
     addPatient,
@@ -156,5 +175,6 @@ export function useHospitalData() {
     updateInventory,
     addInvoice,
     addPrescription,
+    addLabReport,
   };
 }
