@@ -2,17 +2,65 @@
 A modern Hospital Management System built with React, focusing on an intuitive and responsive frontend interface. 
 This project provides user-friendly dashboards for managing patients, appointments, doctors, and hospital resources. 
 
-It emphasizes clean UI/UX design, efficient state management, and seamless data handling through API integration. 
-Ideal for demonstrating frontend development skills in building scalable and interactive healthcare applications.
+## 🚀 Features
 
-# How can I run this code?
-The only requirement is having Node.js & npm installed
+### Customer Features
+- **User Authentication**: Register, Login, Forgot Password, JWT-based authentication
+- **Doctor & Service Browsing**: Category filters, Doctor availability search
+- **Appointment Booking**: Book medical appointments by selecting
+- **Medical Service Selection**: Lab tests, Diagnostic services, Health checkup packages
+- **Appointment Cart**: Add or manage multiple appointments or services before final confirmation
+- **Appointment Confirmation**: Multi-step appointment confirmation
+- **Appointment Tracking**: Real-time tracking of appointment status
+- **Notifications & Reminders**: Appointment confirmations
+- **Emergency Booking**: Quick emergency appointment request with priority handling
 
-# What technologies are used for this project?
-- React
-- Vite
-- TypeScript
-- tailwindcss
+### Admin Features
+- **Dashboard**: Total patient registrations, Total appointments
+- **Appointment Management**: Manage all patient appointments
+- **Doctor & Department Management**: Add, edit, and delete doctors with full profiles
+- **Patient Management**: View and manage all registered patients
+- **Medical Services Management**: Lab tests, Pricing and availability control
+- **Schedule & Time Slot Management**: Configure doctor availability
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **Localspace** - database for storing data
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
+- **dotenv** - Environment variable management
+
+### Frontend
+- **React 18** - UI library
+- **React Router DOM 6** - Routing
+- **Tailwind CSS** - Styling
+- **React Icons** - Icon library
+- **React Toastify** - Notifications
+- **Chart.js** - Analytics charts
+
+### Installation
+
+1. **Install Frontend Dependencies**
+   ```bash
+   cd frontend
+   npm install
+   ```
+## 🔑 Demo Credentials
+
+### Admin Account
+- Email: admin@gmail.com
+- Password: admin123
+
+### User Account
+- Email: sadeepa@example.com
+- Password: test123
+
+## 📄 License
+
+This project is for educational purposes.
 
 # Screenshot of web application
 
