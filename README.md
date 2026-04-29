@@ -4,7 +4,7 @@ This project provides user-friendly dashboards for managing patients, appointmen
 
 ## 🚀 Features
 
-### Customer Features
+### Patient Features
 - **User Authentication**: Register, Login, Forgot Password, JWT-based authentication
 - **Doctor & Service Browsing**: Category filters, Doctor availability search
 - **Appointment Booking**: Book medical appointments by selecting
