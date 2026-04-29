@@ -58,6 +58,29 @@ This project provides user-friendly dashboards for managing patients, appointmen
 - Email: sadeepa@example.com
 - Password: test123
 
+## 📝 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Login Staff
+- `GET /api/auth/me` - Get current Staff
+
+### Patients
+- `GET /api/patients` - Get all patients
+- `GET /api/patients/:id` - Get patients by ID
+- `POST /api/patients` - add patients (staff)
+- `PUT /api/patients/:id` - Update patients (staff)
+
+### Doctor
+- `GET /api/doctors` - Get all doctors
+- `GET /api/doctors/:id` - Get doctors by ID
+- `POST /api/doctors` - add doctors (admin)
+- `PUT /api/doctors/:id` - Update doctors (admin)
+- `DELETE /api/doctors/:id` - Delete doctors (admin)
+
+### Reviews
+- `GET /api/reviews/:doctorId` - Get reviews for doctor
+- `POST /api/reviews` - Add review
+
 ## 📄 License
 
 This project is for educational purposes.
